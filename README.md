@@ -1,5 +1,7 @@
 
-# Waylapse
+# waylapse
+
+<img src="github_images/waylapse_banner" alt="waylapse_banner"/>
 
 <div align="center">
   <h3>Cinematic Route Visualization</h3>
