@@ -78,10 +78,10 @@ function App() {
         <div className={`flex-1 flex flex-col justify-center items-center p-6 transition-all duration-700 ease-in-out absolute inset-0 z-40 ${appState === AppState.VISUALIZING ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 scale-100'}`}>
             <div className="max-w-md w-full relative flex flex-col max-h-full">
                  <div className="mb-8 md:mb-12 text-center space-y-4 shrink-0">
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
+                    <h1 className="text-6xl md:text-8xl font-black font-montserrat tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-400 to-white animate-text-shimmer animate-slide-in-down drop-shadow-sm select-none" style={{ animationDelay: '0ms' }}>
                         {t.appTitle}
                     </h1>
-                    <p className="text-sm text-neutral-500 max-w-xs mx-auto uppercase tracking-widest font-medium">
+                    <p className="text-sm text-neutral-500 max-w-xs mx-auto uppercase tracking-widest font-medium animate-slide-in-down" style={{ animationDelay: '100ms' }}>
                         {t.appSubtitle}
                     </p>
                 </div>

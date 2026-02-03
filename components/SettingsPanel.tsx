@@ -66,11 +66,14 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
     
     // Default to MOTION now that SOCIAL is last
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
-    const [isMounted, setIsMounted] = useState(false);
+    // Track if panel has been opened at least once to enable transitions for closing
+    const [hasOpened, setHasOpened] = useState(false);
 
     useEffect(() => {
-        setIsMounted(true);
-    }, []);
+        if (isOpen && !hasOpened) {
+            setHasOpened(true);
+        }
+    }, [isOpen, hasOpened]);
 
     const animationOptions: { id: AnimationType; label: string; icon: any; desc: string }[] = [
         { id: 'CINEMATIC', label: t.animations.cinematic.label, icon: Zap, desc: t.animations.cinematic.desc },
@@ -104,18 +107,20 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
         }
     };
 
-    // Prevent rendering on server or initial hydration to avoid ghosting
-    if (!isMounted) return null;
+    // Apply transition if it is currently open OR has been opened before (to support closing animation)
+    // checking isOpen here ensures the entry animation plays on the very first open
+    const shouldAnimate = isOpen || hasOpened;
+    const transitionClass = shouldAnimate ? 'transition-all duration-500' : '';
 
     return (
         <div 
-            className={`fixed inset-0 z-[60] flex items-center justify-center md:p-6 transition-all duration-500 ${
+            className={`fixed inset-0 z-[60] flex items-center justify-center md:p-6 ${transitionClass} ${
                 isOpen ? 'pointer-events-auto visible' : 'pointer-events-none invisible delay-200'
             }`}
         >
             {/* Backdrop */}
             <div 
-                className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500 ease-out ${
+                className={`absolute inset-0 bg-black/40 backdrop-blur-sm ease-out ${transitionClass} ${
                     isOpen ? 'opacity-100' : 'opacity-0'
                 }`} 
                 onClick={onClose}
@@ -126,10 +131,10 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 className={`
                     relative w-full h-[100dvh] md:w-[500px] md:h-auto md:max-h-[85vh] 
                     bg-neutral-900 border-l md:border border-white/10 shadow-2xl flex flex-col overflow-hidden md:rounded-2xl
-                    transition-all duration-500 cubic-bezier(0.2, 0.8, 0.2, 1)
+                    cubic-bezier(0.2, 0.8, 0.2, 1) ${transitionClass}
                     ${isOpen 
                         ? 'translate-x-0 translate-y-0 opacity-100 scale-100' 
-                        : 'translate-x-[40px] md:translate-x-0 md:translate-y-[20px] opacity-0 scale-[0.96]'
+                        : 'opacity-0 scale-95 translate-y-0 md:translate-y-[20px]'
                     }
                 `}
             >
