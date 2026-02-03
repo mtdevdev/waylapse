@@ -1,10 +1,9 @@
-
-<img src="github/waylapse_banner.png" alt="waylapse_banner"/>
-<p align="center">Cinematic Route Visualization</p>
-
 <hr>
 
 <div align="center">
+
+  <img src="github/waylapse_banner.png" alt="waylapse_banner"/>
+  
   <p>
     A cinematic route visualization tool built with React, Leaflet, and Tailwind CSS.
   </p>
