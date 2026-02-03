@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import RoutePlanner from './components/RoutePlanner';
 import InlineMap from './components/InlineMap';
@@ -15,9 +15,27 @@ import { translations } from './services/translations';
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [route, setRoute] = useState<RouteDetails | null>(null);
-  const [mapConfig, setMapConfig] = useState<MapConfig>(DEFAULT_CONFIG);
+  
+  // Initialize config from localStorage or fallback to default
+  const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
+    try {
+      const saved = localStorage.getItem('flowpath_config');
+      if (saved) {
+        return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+      }
+    } catch (e) {
+      console.warn('Failed to load config from storage:', e);
+    }
+    return DEFAULT_CONFIG;
+  });
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
+  // Persist config changes
+  useEffect(() => {
+    localStorage.setItem('flowpath_config', JSON.stringify(mapConfig));
+  }, [mapConfig]);
+
   // Auto-detect language: if browser is any 'pt' variant, use 'pt-BR', otherwise default to 'en'
   const [language, setLanguage] = useState<Language>(() => {
       if (typeof navigator !== 'undefined' && navigator.language) {

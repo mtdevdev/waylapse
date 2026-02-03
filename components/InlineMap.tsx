@@ -729,6 +729,10 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
                         <div className="text-[10px] text-neutral-500 uppercase tracking-[0.4em] font-bold">{t.arrival}</div>
                         <div className="flex flex-col items-center">
                              <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">{route.endLabel.title}</h2>
+                             {/* Added Subtitle Display for Arrival */}
+                             {route.endLabel.subtitle && (
+                                <span className="text-sm md:text-base text-neutral-400 font-medium mt-1">{route.endLabel.subtitle}</span>
+                             )}
                         </div>
                     </div>
 
