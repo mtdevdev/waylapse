@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users } from 'lucide-react';
 import { MapConfig, COLOR_OPTIONS, AnimationType } from '../types';
 import { Translation } from '../services/translations';
@@ -66,6 +66,11 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
     
     // Default to MOTION now that SOCIAL is last
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const animationOptions: { id: AnimationType; label: string; icon: any; desc: string }[] = [
         { id: 'CINEMATIC', label: t.animations.cinematic.label, icon: Zap, desc: t.animations.cinematic.desc },
@@ -98,6 +103,9 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
             onChange({ ...config, userImage: url });
         }
     };
+
+    // Prevent rendering on server or initial hydration to avoid ghosting
+    if (!isMounted) return null;
 
     return (
         <div 
