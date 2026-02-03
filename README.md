@@ -1,12 +1,6 @@
-<p align="center">
-  <img src="/github/vismindlogo.png" alt="vismind Logo" width="100">
-</p>
-
-<h1 align="center">waylapse</h1>
-
-<p align="center">Cinematic Route Visualization</p>
 
 <img src="github/waylapse_banner.png" alt="waylapse_banner"/>
+<p align="center">Cinematic Route Visualization</p>
 
 <hr>
 
