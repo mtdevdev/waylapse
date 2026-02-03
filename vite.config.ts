@@ -19,10 +19,16 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt', 'images/*.png', 'images/*.svg'],
+      includeAssets: ['favicon.ico', 'robots.txt', 'images/apple-touch-icon.png', 'images/*.png'],
+      workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true
+      },
       manifest: {
-        name: 'waylapse',
-        short_name: 'waylapse',
+        name: 'Waylapse',
+        short_name: 'Waylapse',
         description: 'Cinematic route visualization',
         theme_color: '#000000',
         background_color: '#000000',
@@ -31,17 +37,17 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/images/icon-192.png',
+            src: '/images/android-chrome-192x192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/images/icon-512.png',
+            src: '/images/android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: '/images/icon-512.png',
+            src: '/images/android-chrome-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
