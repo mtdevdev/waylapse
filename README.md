@@ -1,10 +1,16 @@
+<p align="center">
+  <img src="/github/vismindlogo.png" alt="vismind Logo" width="100">
+</p>
 
-# waylapse
+<h1 align="center">waylapse</h1>
+
+<p align="center">Cinematic Route Visualization</p>
 
 <img src="github/waylapse_banner.png" alt="waylapse_banner"/>
 
+<hr>
+
 <div align="center">
-  <h3>Cinematic Route Visualization</h3>
   <p>
     A cinematic route visualization tool built with React, Leaflet, and Tailwind CSS.
   </p>
