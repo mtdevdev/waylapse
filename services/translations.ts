@@ -87,8 +87,8 @@ export interface Translation {
 
 export const translations: Record<Language, Translation> = {
   en: {
-    appTitle: "Flow Path",
-    appSubtitle: "Algorithmic Path Visualization",
+    appTitle: "Waylapse",
+    appSubtitle: "Cinematic Route Visualization",
     planner: {
       startLocation: "Start Location",
       destination: "Destination",
@@ -165,8 +165,8 @@ export const translations: Record<Language, Translation> = {
     }
   },
   'pt-BR': {
-    appTitle: "Flow Path",
-    appSubtitle: "Visualização Algorítmica de Trajetos",
+    appTitle: "Waylapse",
+    appSubtitle: "Visualização Cinematográfica de Rotas",
     planner: {
       startLocation: "Local de Partida",
       destination: "Destino",

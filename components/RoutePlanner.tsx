@@ -265,8 +265,8 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   // Load history on mount
   useEffect(() => {
       try {
-          // Using a new key for the route-pair history format
-          const saved = localStorage.getItem('flowpath_history_routes');
+          // Changed key from flowpath_history_routes to waylapse_history_routes
+          const saved = localStorage.getItem('waylapse_history_routes');
           if (saved) {
               const parsed = JSON.parse(saved);
               // Basic validation to ensure data integrity
@@ -290,7 +290,8 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
           // Add to top, keep last 5
           const updated = [newItem, ...filtered].slice(0, 5);
           try {
-              localStorage.setItem('flowpath_history_routes', JSON.stringify(updated));
+              // Changed key from flowpath_history_routes to waylapse_history_routes
+              localStorage.setItem('waylapse_history_routes', JSON.stringify(updated));
           } catch(e) {}
           return updated;
       });
@@ -306,7 +307,8 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
       e.stopPropagation();
       setHistory(prev => {
           const updated = prev.filter(item => item.timestamp !== timestamp);
-          localStorage.setItem('flowpath_history_routes', JSON.stringify(updated));
+          // Changed key from flowpath_history_routes to waylapse_history_routes
+          localStorage.setItem('waylapse_history_routes', JSON.stringify(updated));
           return updated;
       });
   };

@@ -19,7 +19,8 @@ function App() {
   // Initialize config from localStorage or fallback to default
   const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
     try {
-      const saved = localStorage.getItem('flowpath_config');
+      // Changed key from flowpath_config to waylapse_config
+      const saved = localStorage.getItem('waylapse_config');
       if (saved) {
         return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
       }
@@ -41,7 +42,8 @@ function App() {
             customAudioUrl: null,
             customAudioName: null
         };
-        localStorage.setItem('flowpath_config', JSON.stringify(configToSave));
+        // Changed key from flowpath_config to waylapse_config
+        localStorage.setItem('waylapse_config', JSON.stringify(configToSave));
     } catch (e) {
         console.warn('Failed to save config to storage:', e);
     }

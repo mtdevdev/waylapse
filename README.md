@@ -1,7 +1,8 @@
-# Flow Path
+
+# Waylapse
 
 <div align="center">
-  <h3>Algorithmic Path Visualization</h3>
+  <h3>Cinematic Route Visualization</h3>
   <p>
     A cinematic route visualization tool built with React, Leaflet, and Tailwind CSS.
   </p>
@@ -21,7 +22,7 @@
 
 ## Overview
 
-**Flow Path** is a web application designed to create aesthetically pleasing, animated visualizations of travel routes. Unlike standard navigation apps, Flow Path focuses on the *presentation* of the journey. It uses algorithmic camera control to create cinematic flyovers, smooth path following, and stylized statistical overlays, making it perfect for content creators, travel vloggers, or anyone who wants to visualize a trip.
+**Waylapse** is a web application designed to create aesthetically pleasing, animated visualizations of travel routes. Unlike standard navigation apps, Waylapse focuses on the *presentation* of the journey. It uses algorithmic camera control to create cinematic flyovers, smooth path following, and stylized statistical overlays, making it perfect for content creators, travel vloggers, or anyone who wants to visualize a trip.
 
 The application is fully client-side and deployed on **Vercel**.
 
@@ -69,8 +70,8 @@ To run this project locally:
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/your-username/flow-path.git
-    cd flow-path
+    git clone https://github.com/your-username/waylapse.git
+    cd waylapse
     ```
 
 2.  **Install dependencies**
