@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useEffect } from 'react';
-import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users } from 'lucide-react';
+import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles } from 'lucide-react';
 import { MapConfig, COLOR_OPTIONS, AnimationType } from '../types';
 import { Translation } from '../services/translations';
 
@@ -16,6 +16,9 @@ interface Props {
     onClose: () => void;
     isOpen: boolean;
     t: Translation['settings'];
+    onInstallApp: () => void;
+    canInstall: boolean;
+    isMobile: boolean;
 }
 
 // Extracted components to prevent re-mounting on parent render
@@ -62,7 +65,7 @@ const ToggleRow = ({ label, checked, onChange, description, disabled = false }: 
 
 type SettingsTab = 'MOTION' | 'STYLE' | 'SOCIAL';
 
-const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, isOpen, t }) => {
+const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, isOpen, t, onInstallApp, canInstall, isMobile }) => {
     
     // Default to MOTION now that SOCIAL is last
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
@@ -509,6 +512,35 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
 
                 {/* Footer */}
                 <div className="p-5 border-t border-white/10 bg-neutral-900/95 backdrop-blur-md shrink-0 pb-safe z-10">
+                    
+                    {/* Install App Section - Only shows if supported, not installed, AND user is on mobile */}
+                    {canInstall && isMobile && (
+                        <div className="mb-4">
+                            <div className="mb-2.5 px-1 flex items-center gap-2 text-yellow-400 animate-pulse">
+                                <Sparkles size={12} />
+                                <span className="text-[10px] uppercase tracking-widest font-bold">{t.installNote}</span>
+                            </div>
+                            <button
+                                onClick={onInstallApp}
+                                className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-black bg-white hover:bg-neutral-200 rounded-lg transition-all shadow-lg active:scale-[0.98]"
+                            >
+                                <Download size={14} />
+                                {t.installApp}
+                            </button>
+                        </div>
+                    )}
+                    
+                    {/* Desktop install button fallback (optional, less prominent if mobile note is desired emphasis) */}
+                    {canInstall && !isMobile && (
+                        <button
+                            onClick={onInstallApp}
+                            className="w-full py-3 mb-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-black bg-white hover:bg-neutral-200 rounded-lg transition-all shadow-lg active:scale-[0.98]"
+                        >
+                            <Download size={14} />
+                            {t.installApp}
+                        </button>
+                    )}
+
                     <button 
                         onClick={onReset}
                         className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-white/10 active:scale-[0.98]"

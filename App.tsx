@@ -15,6 +15,40 @@ import { translations } from './services/translations';
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [route, setRoute] = useState<RouteDetails | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
+  // PWA Install State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    // Detect mobile device
+    const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+    setIsMobile(mobileRegex.test(navigator.userAgent));
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    // Show the install prompt
+    deferredPrompt.prompt();
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
   
   // Initialize config from localStorage or fallback to default
   const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
@@ -84,6 +118,9 @@ function App() {
         onClose={() => setIsSettingsOpen(false)} 
         isOpen={isSettingsOpen} 
         t={t.settings}
+        onInstallApp={handleInstallApp}
+        canInstall={!!deferredPrompt}
+        isMobile={isMobile}
       />
 
       {/* Language Toggle - Top Right (Visible only in Planning) */}

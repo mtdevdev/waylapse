@@ -56,6 +56,8 @@ export interface Translation {
         uploadPlaceholder: string;
         showMusicOverlay: string;
         showSocialOverlay: string;
+        installApp: string;
+        installNote: string; // New
         speeds: {
             slow: string;
             normal: string;
@@ -136,6 +138,8 @@ export const translations: Record<Language, Translation> = {
       uploadPlaceholder: "Choose audio file...",
       showMusicOverlay: "Show Music Ticker",
       showSocialOverlay: "Show Username Tag",
+      installApp: "Install App",
+      installNote: "For the best experience",
       speeds: {
         slow: "SLOW",
         normal: "NORMAL",
@@ -214,6 +218,8 @@ export const translations: Record<Language, Translation> = {
       uploadPlaceholder: "Escolher arquivo...",
       showMusicOverlay: "Mostrar Faixa de Música",
       showSocialOverlay: "Mostrar Tag de Usuário",
+      installApp: "Instalar App",
+      installNote: "Para a melhor experiência",
       speeds: {
         slow: "LENTO",
         normal: "NORMAL",
