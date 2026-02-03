@@ -31,9 +31,20 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
-  // Persist config changes
+  // Persist config changes (Excluding Audio to save space)
   useEffect(() => {
-    localStorage.setItem('flowpath_config', JSON.stringify(mapConfig));
+    try {
+        // Create a copy to save, but explicitly remove large temporary audio data
+        // We DO save the userImage (Base64)
+        const configToSave = {
+            ...mapConfig,
+            customAudioUrl: null,
+            customAudioName: null
+        };
+        localStorage.setItem('flowpath_config', JSON.stringify(configToSave));
+    } catch (e) {
+        console.warn('Failed to save config to storage:', e);
+    }
   }, [mapConfig]);
 
   // Auto-detect language: if browser is any 'pt' variant, use 'pt-BR', otherwise default to 'en'

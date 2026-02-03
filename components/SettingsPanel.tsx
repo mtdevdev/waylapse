@@ -84,9 +84,24 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
         { id: 'OVERVIEW', label: t.animations.static.label, icon: Map, desc: t.animations.static.desc },
     ];
 
+    // Helper for images (Base64 for persistence)
+    const fileToBase64 = (file: File, callback: (result: string) => void) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            if (typeof reader.result === 'string') {
+                callback(reader.result);
+            }
+        };
+        reader.onerror = (error) => {
+            console.error('Error converting file to base64:', error);
+        };
+    };
+
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // For Audio: Use Object URL for performance (Session only, not saved to localStorage)
             const url = URL.createObjectURL(file);
             // Remove file extension for cleaner display
             const cleanName = file.name.replace(/\.[^/.]+$/, "");
@@ -102,8 +117,10 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const url = URL.createObjectURL(file);
-            onChange({ ...config, userImage: url });
+            // For Image: Use Base64 so it can be persisted in localStorage
+            fileToBase64(file, (base64Url) => {
+                onChange({ ...config, userImage: base64Url });
+            });
         }
     };
 
