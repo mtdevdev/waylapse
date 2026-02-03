@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, Clock, History, ArrowUpDown, ArrowRight } from 'lucide-react';
+import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, Clock, History, ArrowUpDown, ArrowRight, ChevronDown } from 'lucide-react';
 import { RouteDetails, AppState, LocationLabel, Language } from '../types';
 import { searchLocation, getRouteData, formatDistance, formatDuration, NominatimResult } from '../services/mapUtils';
 import { Translation } from '../services/translations';
@@ -257,6 +257,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const [endPoint, setEndPoint] = useState<PointState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
   
   // History State
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -293,6 +294,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
           } catch(e) {}
           return updated;
       });
+      setIsHistoryOpen(true);
   };
 
   const handleHistoryClick = (item: HistoryItem) => {
@@ -400,35 +402,51 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
         {/* History Routes */}
         {history.length > 0 && !isLocked && (
             <div className="animate-slide-in-up" style={{ animationDelay: '400ms' }}>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                    <History size={10} className="text-neutral-500" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{t.recent}</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                    {history.map((item) => (
-                        <div
-                            key={item.timestamp}
-                            onClick={() => handleHistoryClick(item)}
-                            className="group flex items-center justify-between pl-4 pr-2 py-3 bg-neutral-900/50 border border-white/5 rounded-xl cursor-pointer hover:bg-neutral-900 hover:border-white/20 transition-all animate-fade-in"
-                        >
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <span className="text-xs font-medium text-neutral-300 truncate max-w-[120px] md:max-w-[140px]">
-                                    {item.start.label.title || item.start.name.split(',')[0]}
-                                </span>
-                                <ArrowRight size={10} className="text-neutral-600 shrink-0" />
-                                <span className="text-xs font-bold text-white truncate max-w-[120px] md:max-w-[140px]">
-                                    {item.end.label.title || item.end.name.split(',')[0]}
-                                </span>
-                            </div>
-                            
-                            <button 
-                                onClick={(e) => removeHistoryItem(e, item.timestamp)}
-                                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                <button 
+                    onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+                    className="w-full flex items-center justify-between py-2 px-1 group cursor-pointer mb-1 hover:bg-white/5 rounded-lg transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        <History size={10} className="text-neutral-500 group-hover:text-neutral-300 transition-colors" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 group-hover:text-neutral-300 transition-colors">{t.recent}</span>
+                    </div>
+                    <ChevronDown 
+                        size={14} 
+                        className={`text-neutral-600 group-hover:text-neutral-400 transition-transform duration-300 ${isHistoryOpen ? 'rotate-180' : ''}`} 
+                    />
+                </button>
+
+                <div 
+                    className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                        isHistoryOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
+                >
+                    <div className="flex flex-col gap-2 pt-1 pb-2">
+                        {history.map((item) => (
+                            <div
+                                key={item.timestamp}
+                                onClick={() => handleHistoryClick(item)}
+                                className="group flex items-center justify-between pl-4 pr-2 py-3 bg-neutral-900/50 border border-white/5 rounded-xl cursor-pointer hover:bg-neutral-900 hover:border-white/20 transition-all animate-fade-in"
                             >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    ))}
+                                <div className="flex items-center gap-2 overflow-hidden">
+                                    <span className="text-xs font-medium text-neutral-300 truncate max-w-[120px] md:max-w-[140px]">
+                                        {item.start.label.title || item.start.name.split(',')[0]}
+                                    </span>
+                                    <ArrowRight size={10} className="text-neutral-600 shrink-0" />
+                                    <span className="text-xs font-bold text-white truncate max-w-[120px] md:max-w-[140px]">
+                                        {item.end.label.title || item.end.name.split(',')[0]}
+                                    </span>
+                                </div>
+                                
+                                <button 
+                                    onClick={(e) => removeHistoryItem(e, item.timestamp)}
+                                    className="p-1.5 rounded-full hover:bg-white/10 text-neutral-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                >
+                                    <X size={12} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         )}
