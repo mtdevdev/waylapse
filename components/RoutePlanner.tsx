@@ -393,7 +393,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             {!isLocked && (
                 <button 
                     onClick={handleSwap}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-neutral-800 border border-white/10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 hover:border-white/30 transition-all shadow-xl z-30 group"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-neutral-800 border border-white/10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 hover:border-white/30 transition-all shadow-xl z-[60] group"
                     title="Swap locations"
                 >
                     <ArrowUpDown size={14} className="group-hover:scale-110 transition-transform" />

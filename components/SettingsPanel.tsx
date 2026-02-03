@@ -515,10 +515,10 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     
                     {/* Install App Section - Only shows if supported, not installed, AND user is on mobile */}
                     {canInstall && isMobile && (
-                        <div className="mb-4">
-                            <div className="mb-2.5 px-1 flex items-center justify-center gap-2 text-yellow-400 animate-pulse">
+                        <div className="mb-4 w-full">
+                            <div className="mb-2.5 px-1 w-full flex items-center justify-center gap-2 text-yellow-400 animate-pulse">
                                 <Sparkles size={12} />
-                                <span className="text-[10px] uppercase tracking-widest font-bold">{t.installNote}</span>
+                                <span className="text-[10px] uppercase tracking-widest font-bold text-center">{t.installNote}</span>
                             </div>
                             <button
                                 onClick={onInstallApp}
