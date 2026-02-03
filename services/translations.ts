@@ -18,7 +18,7 @@ export interface Translation {
         errorCalculation: string;
         noLocationsFound: string;
         tryDifferentSearch: string;
-        recent: string; // New
+        recent: string;
     };
     settings: {
         title: string;
@@ -57,7 +57,7 @@ export interface Translation {
         showMusicOverlay: string;
         showSocialOverlay: string;
         installApp: string;
-        installNote: string; // New
+        installNote: string;
         speeds: {
             slow: string;
             normal: string;
@@ -84,6 +84,9 @@ export interface Translation {
         playingNow: string;
         noAudio: string;
         customAudio: string;
+        exportVideo: string;
+        startExport: string;
+        exportTip: string;
     };
 }
 
@@ -165,7 +168,10 @@ export const translations: Record<Language, Translation> = {
       traveling: "Traveling",
       playingNow: "Playing Now",
       noAudio: "No Audio Loaded",
-      customAudio: "Custom Audio"
+      customAudio: "Custom Audio",
+      exportVideo: "Export Video",
+      startExport: "Start Recording",
+      exportTip: "Select 'This Tab' in the popup"
     }
   },
   'pt-BR': {
@@ -245,7 +251,10 @@ export const translations: Record<Language, Translation> = {
       traveling: "Viajando",
       playingNow: "Tocando Agora",
       noAudio: "Sem Áudio",
-      customAudio: "Áudio Personalizado"
+      customAudio: "Áudio Personalizado",
+      exportVideo: "Exportar Vídeo",
+      startExport: "Gravar",
+      exportTip: "Selecione 'Esta Guia' no popup"
     }
   }
 };

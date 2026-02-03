@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { RouteDetails, LocationLabel, MapConfig, Language } from '../types';
 import * as L from 'leaflet';
 import { computeLength, getPointAtDistance, formatDuration, formatDistance } from '../services/mapUtils';
-import { Play, Pause, RotateCcw, MapPin, Clock, Route as RouteIcon, ArrowDown, Music, User } from 'lucide-react';
+import { Play, Pause, RotateCcw, MapPin, Clock, Route as RouteIcon, ArrowDown, Music, User, Video, Loader2 } from 'lucide-react';
 import { Translation } from '../services/translations';
 
 interface Props {
@@ -128,6 +128,14 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
   // UI State for immersive mode
   const [showControls, setShowControls] = useState(true);
   const idleTimeoutRef = useRef<number | null>(null);
+  
+  // Recording State
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+
+  // Hack to trigger full intro restart: Toggle a dummy state included in the useEffect dependency
+  const [restartTrigger, setRestartTrigger] = useState(0);
 
   // Dynamic values
   const formattedDuration = formatDuration(route.durationSeconds, language);
@@ -215,7 +223,8 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
         const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 20,
             subdomains: 'abcd',
-            opacity: 1
+            opacity: 1,
+            crossOrigin: 'anonymous' // Important for recording
         });
         
         tileLayerRef.current = tileLayer;
@@ -461,7 +470,7 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
     };
 
     runCinematicIntro();
-  }, [route]); 
+  }, [route, restartTrigger]); 
 
   // --- Main Animation Loop ---
   useEffect(() => {
@@ -469,6 +478,10 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
     
     if (!isPlaying) {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        // Check if we just finished recording and the animation stopped naturally
+        if (isRecording && progressRef.current >= 1) {
+            handleStopRecording();
+        }
         return;
     }
 
@@ -509,6 +522,9 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
         } else {
             setIsPlaying(false);
             setShowControls(true);
+            if (isRecording) {
+                handleStopRecording();
+            }
         }
     };
 
@@ -517,7 +533,7 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
     return () => {
         if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isPlaying, route, introStage]);
+  }, [isPlaying, route, introStage, isRecording]);
 
   const updateCamera = (map: L.Map, point: [number, number], type: string, progress: number) => {
       switch (type) {
@@ -537,6 +553,9 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
   };
 
   const handleInteraction = () => {
+      // Don't show controls if recording and intro is active (keep it clean)
+      if (isRecording) return;
+      
       if (introStage !== IntroStage.COMPLETED) return;
       
       setShowControls(true);
@@ -623,9 +642,80 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
       idleTimeoutRef.current = window.setTimeout(() => setShowControls(false), 2500);
   };
 
+  const handleStartRecording = async () => {
+      try {
+          const stream = await navigator.mediaDevices.getDisplayMedia({
+              video: {
+                  displaySurface: "browser",
+              },
+              audio: true, // Attempt to capture system audio for music sync
+              selfBrowserSurface: "include",
+              preferCurrentTab: true, 
+          } as any);
+
+          const mimeType = 'video/webm;codecs=vp9';
+          const options = MediaRecorder.isTypeSupported(mimeType) ? { mimeType } : { mimeType: 'video/webm' };
+          
+          const mediaRecorder = new MediaRecorder(stream, options);
+          mediaRecorderRef.current = mediaRecorder;
+          recordedChunksRef.current = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+              if (event.data.size > 0) {
+                  recordedChunksRef.current.push(event.data);
+              }
+          };
+
+          mediaRecorder.onstop = () => {
+              const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              document.body.appendChild(a);
+              a.style.display = 'none';
+              a.href = url;
+              a.download = `waylapse_${new Date().getTime()}.webm`;
+              a.click();
+              window.URL.revokeObjectURL(url);
+              
+              // Stop all tracks to clear the browser "sharing" indicator
+              stream.getTracks().forEach(track => track.stop());
+              
+              setIsRecording(false);
+              setShowControls(true);
+          };
+
+          mediaRecorder.start();
+          setIsRecording(true);
+          setShowControls(false); // Hide controls immediately
+
+          // If Intro is enabled, force full restart including cinematic sequence
+          if (config.showIntro) {
+              setRestartTrigger(prev => prev + 1);
+          } else {
+              restart();
+          }
+
+      } catch (err) {
+          console.error("Error starting screen record:", err);
+          setIsRecording(false);
+          setShowControls(true);
+      }
+  };
+  
+  const handleStopRecording = () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+      }
+  };
+  
+  // Wrapper for Start that triggers restart
+  const handleExport = async () => {
+      await handleStartRecording();
+  };
+
   return (
     <div 
-        className="w-full h-full relative bg-black overflow-hidden" 
+        className={`w-full h-full relative bg-black overflow-hidden ${isRecording ? 'cursor-none' : ''}`}
         onMouseMove={handleInteraction}
         onTouchStart={handleInteraction}
         onClick={handleInteraction}
@@ -804,11 +894,27 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
                 </div>
             </div>
         )}
+        
+        {/* Recording Indicator */}
+        {isRecording && (
+             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 animate-pulse flex items-center gap-2 bg-red-500/80 text-white px-3 py-1 rounded-full backdrop-blur">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+                <span className="text-[10px] font-bold uppercase tracking-widest">RECORDING</span>
+             </div>
+        )}
 
         {/* Playback Controls - Bottom Center */}
         {introStage === IntroStage.COMPLETED && (
             <div className={`absolute bottom-8 md:bottom-12 left-0 right-0 z-20 flex flex-col items-center gap-6 md:gap-8 px-6 pointer-events-none pb-[env(safe-area-inset-bottom)] transition-all duration-700 ${showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
                 <div className="flex items-center gap-6 pointer-events-auto">
+                    <button 
+                        onClick={handleExport}
+                        title={t.exportTip}
+                        className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-black/40 text-white border border-white/10 hover:bg-black/80 transition-all backdrop-blur-xl group relative"
+                    >
+                        <Video size={18} />
+                    </button>
+                    
                     <button 
                         onClick={togglePlay}
                         className="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition-transform active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.4)]"
