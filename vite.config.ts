@@ -27,8 +27,8 @@ export default defineConfig({
           skipWaiting: true
       },
       manifest: {
-        name: 'Waylapse',
-        short_name: 'Waylapse',
+        name: 'waylapse',
+        short_name: 'waylapse',
         description: 'Cinematic route visualization',
         theme_color: '#000000',
         background_color: '#000000',
