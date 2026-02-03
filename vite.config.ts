@@ -19,28 +19,32 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      devOptions: {
-        enabled: true
-      },
+      includeAssets: ['favicon.ico', 'robots.txt', 'images/*.png', 'images/*.svg'],
       manifest: {
-        name: 'Flow Path',
-        short_name: 'FlowPath',
-        description: 'Algorithmic Path Visualization',
+        name: 'waylapse',
+        short_name: 'waylapse',
+        description: 'Cinematic route visualization',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'standalone',
         orientation: 'portrait',
+        start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/images/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/images/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: '/images/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
       }
