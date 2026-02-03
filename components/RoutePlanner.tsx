@@ -202,6 +202,7 @@ const LocationInput = ({
                 <div className="absolute right-3 flex items-center gap-2">
                     {query && !isLoading && !disabled && (
                         <button 
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={handleClear}
                             className="p-1 rounded-full text-neutral-500 hover:text-white hover:bg-white/10 transition-colors"
                         >
@@ -287,7 +288,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
     <div className={`transition-all duration-700 w-full max-w-md mx-auto flex flex-col ${isLocked ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
       <div className="space-y-4 md:space-y-6 flex-1">
         
-        <div className="space-y-2 relative">
+        <div className="space-y-2 relative animate-slide-in-up" style={{ animationDelay: '300ms' }}>
             <LocationInput 
                 icon={MapPin} 
                 placeholder={t.startLocation}
@@ -310,10 +311,10 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
         </div>
 
         {error && (
-          <p className="text-red-400 text-xs text-center font-mono bg-red-900/20 p-2 rounded border border-red-900/30">{error}</p>
+          <p className="text-red-400 text-xs text-center font-mono bg-red-900/20 p-2 rounded border border-red-900/30 animate-fade-in">{error}</p>
         )}
 
-        <div className="pt-2">
+        <div className="pt-2 animate-slide-in-up" style={{ animationDelay: '500ms' }}>
             <button 
                 onClick={onOpenSettings}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900/50 border border-white/10 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 hover:border-white/20 transition-all mb-4 group"
