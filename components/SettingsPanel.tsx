@@ -1,3 +1,4 @@
+
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -100,7 +101,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
 
     return (
         <div 
-            className={`fixed inset-0 z-[60] flex items-center justify-center md:items-start md:justify-end md:p-6 transition-all duration-500 ${
+            className={`fixed inset-0 z-[60] flex items-center justify-center md:p-6 transition-all duration-500 ${
                 isOpen ? 'pointer-events-auto visible' : 'pointer-events-none invisible delay-200'
             }`}
         >
@@ -115,10 +116,13 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
             {/* Panel */}
             <div 
                 className={`
-                    relative w-full h-[100dvh] md:w-96 md:h-auto md:max-h-[85vh] 
+                    relative w-full h-[100dvh] md:w-[500px] md:h-auto md:max-h-[85vh] 
                     bg-neutral-900 border-l md:border border-white/10 shadow-2xl flex flex-col overflow-hidden md:rounded-2xl
                     transition-all duration-500 cubic-bezier(0.2, 0.8, 0.2, 1)
-                    ${isOpen ? 'translate-x-0 opacity-100 scale-100' : 'translate-x-[40px] opacity-0 scale-[0.96]'}
+                    ${isOpen 
+                        ? 'translate-x-0 translate-y-0 opacity-100 scale-100' 
+                        : 'translate-x-[40px] md:translate-x-0 md:translate-y-[20px] opacity-0 scale-[0.96]'
+                    }
                 `}
             >
                 
