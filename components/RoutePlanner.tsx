@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings } from 'lucide-react';
+import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, Clock, History, ArrowUpDown, ArrowRight } from 'lucide-react';
 import { RouteDetails, AppState, LocationLabel, Language } from '../types';
 import { searchLocation, getRouteData, formatDistance, formatDuration, NominatimResult } from '../services/mapUtils';
 import { Translation } from '../services/translations';
@@ -23,6 +23,12 @@ interface PointState {
     lat: number;
     lon: number;
     label: LocationLabel;
+}
+
+interface HistoryItem {
+    start: PointState;
+    end: PointState;
+    timestamp: number;
 }
 
 const extractLabel = (result: NominatimResult): LocationLabel => {
@@ -67,22 +73,29 @@ const LocationInput = ({
     onSelect, 
     disabled,
     autoFocus,
-    t
+    t,
+    defaultValue
 }: { 
     icon: any, 
     placeholder: string, 
     onSelect: (val: PointState | null) => void,
     disabled: boolean,
     autoFocus?: boolean,
-    t: Translation['planner']
+    t: Translation['planner'],
+    defaultValue?: string
 }) => {
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState(defaultValue || '');
     const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [noResults, setNoResults] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const hasSelectedRef = useRef(false);
+
+    // Sync query with defaultValue when it changes (e.g. History click or Swap)
+    useEffect(() => {
+        setQuery(defaultValue || '');
+    }, [defaultValue]);
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -180,7 +193,7 @@ const LocationInput = ({
 
     return (
         <div ref={wrapperRef} className={`relative group w-full ${zIndexClass}`}>
-            <div className="relative h-12 md:h-14 bg-neutral-900/80 border border-white/5 focus-within:border-white/20 focus-within:bg-neutral-900 rounded-lg transition-all overflow-hidden flex items-center">
+            <div className="relative h-12 md:h-14 bg-neutral-900/80 border border-white/5 focus-within:border-white/20 focus-within:bg-neutral-900 rounded-lg transition-all overflow-hidden flex items-center pr-10">
                 <Icon className="absolute left-4 text-neutral-500 group-focus-within:text-white transition-colors pointer-events-none shrink-0" size={18} />
                 <input
                     type="text"
@@ -196,7 +209,7 @@ const LocationInput = ({
                     onBlur={handleBlur}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className="w-full h-full bg-transparent p-0 pl-12 pr-10 text-white placeholder-neutral-600 outline-none font-medium text-sm truncate tracking-wide"
+                    className="w-full h-full bg-transparent p-0 pl-12 pr-4 text-white placeholder-neutral-600 outline-none font-medium text-sm truncate tracking-wide"
                 />
                 
                 <div className="absolute right-3 flex items-center gap-2">
@@ -244,6 +257,63 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const [endPoint, setEndPoint] = useState<PointState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // History State
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  // Load history on mount
+  useEffect(() => {
+      try {
+          // Using a new key for the route-pair history format
+          const saved = localStorage.getItem('flowpath_history_routes');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              // Basic validation to ensure data integrity
+              if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].start && parsed[0].end) {
+                  setHistory(parsed);
+              }
+          }
+      } catch (e) {
+          console.warn("Failed to load history");
+      }
+  }, []);
+
+  const addToHistory = (start: PointState, end: PointState) => {
+      const newItem: HistoryItem = { start, end, timestamp: Date.now() };
+      
+      setHistory(prev => {
+          // Dedup: remove identical routes (matching start AND end names)
+          const filtered = prev.filter(item => 
+              !(item.start.name === start.name && item.end.name === end.name)
+          );
+          // Add to top, keep last 5
+          const updated = [newItem, ...filtered].slice(0, 5);
+          try {
+              localStorage.setItem('flowpath_history_routes', JSON.stringify(updated));
+          } catch(e) {}
+          return updated;
+      });
+  };
+
+  const handleHistoryClick = (item: HistoryItem) => {
+      setStartPoint(item.start);
+      setEndPoint(item.end);
+  };
+  
+  const removeHistoryItem = (e: React.MouseEvent, timestamp: number) => {
+      e.stopPropagation();
+      setHistory(prev => {
+          const updated = prev.filter(item => item.timestamp !== timestamp);
+          localStorage.setItem('flowpath_history_routes', JSON.stringify(updated));
+          return updated;
+      });
+  };
+
+  const handleSwap = () => {
+      const temp = startPoint;
+      setStartPoint(endPoint);
+      setEndPoint(temp);
+  };
 
   const handleCalculate = async () => {
     if (!startPoint || !endPoint) {
@@ -260,6 +330,9 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             [endPoint.lat, endPoint.lon], 
             'driving'
         );
+
+        // Save entire route to history
+        addToHistory(startPoint, endPoint);
 
         onRouteFound({
             startAddress: startPoint.name.split(',')[0],
@@ -288,27 +361,77 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
     <div className={`transition-all duration-700 w-full max-w-md mx-auto flex flex-col ${isLocked ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
       <div className="space-y-4 md:space-y-6 flex-1">
         
-        <div className="space-y-2 relative animate-slide-in-up" style={{ animationDelay: '300ms' }}>
-            <LocationInput 
-                icon={MapPin} 
-                placeholder={t.startLocation}
-                onSelect={setStartPoint} 
-                disabled={isLocked}
-                autoFocus
-                t={t}
-            />
-            {/* Visual connector */}
-            <div className="flex pl-6 md:pl-6 -my-2 relative z-10 opacity-30">
-                <div className="w-0.5 h-4 bg-white"></div>
+        <div className="relative animate-slide-in-up isolate" style={{ animationDelay: '300ms' }}>
+            {/* Visual Connector Line (Left) */}
+            <div className="absolute left-[1.65rem] top-8 bottom-8 w-0.5 bg-gradient-to-b from-white/5 via-white/20 to-white/5 -z-10 pointer-events-none"></div>
+
+            <div className="space-y-3">
+                <LocationInput 
+                    icon={MapPin} 
+                    placeholder={t.startLocation}
+                    onSelect={setStartPoint} 
+                    disabled={isLocked}
+                    autoFocus
+                    t={t}
+                    defaultValue={startPoint?.name}
+                />
+                <LocationInput 
+                    icon={Navigation} 
+                    placeholder={t.destination}
+                    onSelect={setEndPoint} 
+                    disabled={isLocked}
+                    t={t}
+                    defaultValue={endPoint?.name}
+                />
             </div>
-            <LocationInput 
-                icon={Navigation} 
-                placeholder={t.destination}
-                onSelect={setEndPoint} 
-                disabled={isLocked}
-                t={t}
-            />
+
+            {/* Swap Button (Right Side, Centered) */}
+            {!isLocked && (
+                <button 
+                    onClick={handleSwap}
+                    className="absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-neutral-800 border border-white/10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 hover:border-white/30 transition-all shadow-xl z-30 group"
+                    title="Swap locations"
+                >
+                    <ArrowUpDown size={14} className="group-hover:scale-110 transition-transform" />
+                </button>
+            )}
         </div>
+        
+        {/* History Routes */}
+        {history.length > 0 && !isLocked && (
+            <div className="animate-slide-in-up" style={{ animationDelay: '400ms' }}>
+                <div className="flex items-center gap-2 mb-2 px-1">
+                    <History size={10} className="text-neutral-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{t.recent}</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                    {history.map((item) => (
+                        <div
+                            key={item.timestamp}
+                            onClick={() => handleHistoryClick(item)}
+                            className="group flex items-center justify-between pl-4 pr-2 py-3 bg-neutral-900/50 border border-white/5 rounded-xl cursor-pointer hover:bg-neutral-900 hover:border-white/20 transition-all animate-fade-in"
+                        >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <span className="text-xs font-medium text-neutral-300 truncate max-w-[120px] md:max-w-[140px]">
+                                    {item.start.label.title || item.start.name.split(',')[0]}
+                                </span>
+                                <ArrowRight size={10} className="text-neutral-600 shrink-0" />
+                                <span className="text-xs font-bold text-white truncate max-w-[120px] md:max-w-[140px]">
+                                    {item.end.label.title || item.end.name.split(',')[0]}
+                                </span>
+                            </div>
+                            
+                            <button 
+                                onClick={(e) => removeHistoryItem(e, item.timestamp)}
+                                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
 
         {error && (
           <p className="text-red-400 text-xs text-center font-mono bg-red-900/20 p-2 rounded border border-red-900/30 animate-fade-in">{error}</p>

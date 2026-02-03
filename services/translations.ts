@@ -18,6 +18,7 @@ export interface Translation {
         errorCalculation: string;
         noLocationsFound: string;
         tryDifferentSearch: string;
+        recent: string; // New
     };
     settings: {
         title: string;
@@ -33,9 +34,9 @@ export interface Translation {
         enableSocial: string;
         enableSocialDesc: string;
         socialHandle: string;
-        profileImage: string; // New
-        uploadImage: string; // New
-        resetImage: string; // New
+        profileImage: string;
+        uploadImage: string;
+        resetImage: string;
         mapStyle: string;
         resetDefaults: string;
         resetAudio: string;
@@ -96,7 +97,8 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Select start and end points.",
       errorCalculation: "Could not calculate a route between these points. Please try different locations.",
       noLocationsFound: "No locations found",
-      tryDifferentSearch: "Try a different search term"
+      tryDifferentSearch: "Try a different search term",
+      recent: "Recent"
     },
     settings: {
       title: "Settings",
@@ -173,7 +175,8 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Selecione os pontos de partida e chegada.",
       errorCalculation: "Não foi possível calcular a rota. Tente locais diferentes.",
       noLocationsFound: "Nenhum local encontrado",
-      tryDifferentSearch: "Tente outro termo de busca"
+      tryDifferentSearch: "Tente outro termo de busca",
+      recent: "Recentes"
     },
     settings: {
       title: "Configurações",
