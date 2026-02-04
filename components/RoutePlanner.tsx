@@ -339,9 +339,12 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   return (
     <>
         {/* Share Modal - Fixed Position for Full Screen Coverage */}
-        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${isShareOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300" onClick={() => setIsShareOpen(false)}></div>
-            <div className={`w-full max-w-[340px] bg-neutral-900 border border-white/10 rounded-2xl p-5 shadow-2xl relative inner-border-highlight transition-all duration-300 cubic-bezier(0.2, 0.8, 0.2, 1) ${isShareOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}>
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 ${isShareOpen ? 'visible' : 'invisible delay-300 pointer-events-none'}`}>
+            <div 
+                className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300 ease-out ${isShareOpen ? 'opacity-100' : 'opacity-0'}`} 
+                onClick={() => setIsShareOpen(false)}
+            ></div>
+            <div className={`w-full max-w-[340px] bg-neutral-900 border border-white/10 rounded-2xl p-5 shadow-2xl relative inner-border-highlight transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isShareOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}>
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                     <div>
                         <h3 className="text-sm font-bold text-white uppercase tracking-widest">{t.shareTitle}</h3>
