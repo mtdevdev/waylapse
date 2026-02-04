@@ -16,11 +16,7 @@ function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [route, setRoute] = useState<RouteDetails | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [isRendering, setIsRendering] = useState(false);
   
-  // Trigger state for export
-  const [exportTrigger, setExportTrigger] = useState(false);
-
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -30,11 +26,14 @@ function App() {
     setIsMobile(mobileRegex.test(navigator.userAgent));
 
     const handleBeforeInstallPrompt = (e: any) => {
+      // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
+      // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
@@ -42,15 +41,19 @@ function App() {
 
   const handleInstallApp = async () => {
     if (!deferredPrompt) return;
+    // Show the install prompt
     deferredPrompt.prompt();
+    // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setDeferredPrompt(null);
     }
   };
   
+  // Initialize config from localStorage or fallback to default
   const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
     try {
+      // Changed key from flowpath_config to waylapse_config
       const saved = localStorage.getItem('waylapse_config');
       if (saved) {
         return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
@@ -63,19 +66,24 @@ function App() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
+  // Persist config changes (Excluding Audio to save space)
   useEffect(() => {
     try {
+        // Create a copy to save, but explicitly remove large temporary audio data
+        // We DO save the userImage (Base64)
         const configToSave = {
             ...mapConfig,
             customAudioUrl: null,
             customAudioName: null
         };
+        // Changed key from flowpath_config to waylapse_config
         localStorage.setItem('waylapse_config', JSON.stringify(configToSave));
     } catch (e) {
         console.warn('Failed to save config to storage:', e);
     }
   }, [mapConfig]);
 
+  // Auto-detect language: if browser is any 'pt' variant, use 'pt-BR', otherwise default to 'en'
   const [language, setLanguage] = useState<Language>(() => {
       if (typeof navigator !== 'undefined' && navigator.language) {
           return navigator.language.toLowerCase().startsWith('pt') ? 'pt-BR' : 'en';
@@ -93,12 +101,6 @@ function App() {
   const handleReset = () => {
       setAppState(AppState.PLANNING);
       setRoute(null);
-  };
-  
-  const handleTriggerExport = () => {
-      setExportTrigger(true);
-      // Reset trigger after a brief moment to allow re-triggering later
-      setTimeout(() => setExportTrigger(false), 500);
   };
 
   return (
@@ -119,7 +121,6 @@ function App() {
         onInstallApp={handleInstallApp}
         canInstall={!!deferredPrompt}
         isMobile={isMobile}
-        onTriggerExport={handleTriggerExport}
       />
 
       {/* Language Toggle - Top Right (Visible only in Planning) */}
@@ -173,15 +174,12 @@ function App() {
                     config={mapConfig} 
                     t={t.map}
                     language={language}
-                    triggerExport={exportTrigger}
-                    onExportStart={() => setIsRendering(true)}
-                    onExportEnd={() => setIsRendering(false)}
                 />
             )}
         </div>
 
         {/* Consistent UI Controls Layer */}
-        <div className={`absolute inset-0 pointer-events-none z-50 transition-opacity duration-500 ${isRendering ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="absolute inset-0 pointer-events-none z-50">
             {/* Back Button - Top Left (Only in Visualizing) */}
             {appState === AppState.VISUALIZING && (
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 animate-fade-in pointer-events-auto">
