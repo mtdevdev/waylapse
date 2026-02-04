@@ -250,11 +250,51 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const [isLoading, setIsLoading] = useState(false);
   const [swapRotation, setSwapRotation] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
+  
+  // Track auto-start execution
+  const hasAutoStarted = useRef(false);
 
-  // Sync state if props change (e.g. from late URL hydration)
+  const calculateRoute = async (start: PointState, end: PointState) => {
+    setError(null);
+    setIsLoading(true);
+
+    try {
+        const routeData = await getRouteData(
+            [start.lat, start.lon], 
+            [end.lat, end.lon], 
+            'driving'
+        );
+
+        onRouteFound({
+            startAddress: start.name.split(',')[0],
+            endAddress: end.name.split(',')[0],
+            startLabel: start.label,
+            endLabel: end.label,
+            distance: formatDistance(routeData.distance, language),
+            distanceMeters: routeData.distance,
+            duration: formatDuration(routeData.duration, language),
+            durationSeconds: routeData.duration,
+            travelMode: 'DRIVING',
+            pathCoordinates: routeData.coordinates,
+        });
+
+    } catch (e) {
+        console.error(e);
+        setError(t.errorCalculation);
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  // Sync state if props change (e.g. from late URL hydration) and handle auto-start
   useEffect(() => {
     if (initialStart) setStartPoint(initialStart);
     if (initialEnd) setEndPoint(initialEnd);
+
+    if (initialStart && initialEnd && !hasAutoStarted.current) {
+        hasAutoStarted.current = true;
+        calculateRoute(initialStart, initialEnd);
+    }
   }, [initialStart, initialEnd]);
 
   const handleSwap = () => {
@@ -276,41 +316,12 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
     }
   };
 
-  const handleCalculate = async () => {
+  const handleCalculateClick = () => {
     if (!startPoint || !endPoint) {
       setError(t.errorSelectPoints);
       return;
     }
-
-    setError(null);
-    setIsLoading(true);
-
-    try {
-        const routeData = await getRouteData(
-            [startPoint.lat, startPoint.lon], 
-            [endPoint.lat, endPoint.lon], 
-            'driving'
-        );
-
-        onRouteFound({
-            startAddress: startPoint.name.split(',')[0],
-            endAddress: endPoint.name.split(',')[0],
-            startLabel: startPoint.label,
-            endLabel: endPoint.label,
-            distance: formatDistance(routeData.distance, language),
-            distanceMeters: routeData.distance,
-            duration: formatDuration(routeData.duration, language),
-            durationSeconds: routeData.duration,
-            travelMode: 'DRIVING',
-            pathCoordinates: routeData.coordinates,
-        });
-
-    } catch (e) {
-        console.error(e);
-        setError(t.errorCalculation);
-    } finally {
-        setIsLoading(false);
-    }
+    calculateRoute(startPoint, endPoint);
   };
 
   const isLocked = appState === AppState.VISUALIZING;
@@ -393,7 +404,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             </div>
 
             <button
-                onClick={handleCalculate}
+                onClick={handleCalculateClick}
                 disabled={isLoading || isLocked || !startPoint || !endPoint}
                 className="w-full bg-white text-black h-14 rounded-xl font-bold text-xs md:text-sm tracking-[0.15em] uppercase hover:bg-neutral-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:shadow-[0_0_35px_rgba(255,255,255,0.25)] active:scale-[0.98]"
             >
