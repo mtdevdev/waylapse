@@ -106,9 +106,12 @@ function App() {
   return (
     <div className="min-h-[100dvh] bg-black text-white relative overflow-hidden font-sans selection:bg-white/20">
       
+      {/* Micro-grain Texture Overlay */}
+      <div className="fixed inset-0 z-[100] pointer-events-none opacity-[0.035] mix-blend-overlay bg-grain select-none"></div>
+
       {/* Background Gradients */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-neutral-900/50 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neutral-900/30 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-neutral-900/40 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neutral-900/20 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Global Settings Panel */}
       <SettingsPanel 
@@ -127,14 +130,14 @@ function App() {
       <div className={`absolute top-6 right-6 z-50 flex items-center gap-2 transition-opacity duration-500 ${appState === AppState.PLANNING ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
          <button
             onClick={() => setLanguage('en')}
-            className={`text-xs font-bold px-2 py-1 rounded transition-colors ${language === 'en' ? 'bg-white text-black' : 'text-neutral-500 hover:text-white'}`}
+            className={`text-[10px] font-bold px-2 py-1 rounded transition-colors tracking-wider ${language === 'en' ? 'bg-white text-black' : 'text-neutral-500 hover:text-white'}`}
          >
             EN
          </button>
          <div className="w-px h-3 bg-neutral-800"></div>
          <button
             onClick={() => setLanguage('pt-BR')}
-             className={`text-xs font-bold px-2 py-1 rounded transition-colors ${language === 'pt-BR' ? 'bg-white text-black' : 'text-neutral-500 hover:text-white'}`}
+             className={`text-[10px] font-bold px-2 py-1 rounded transition-colors tracking-wider ${language === 'pt-BR' ? 'bg-white text-black' : 'text-neutral-500 hover:text-white'}`}
          >
             BR
          </button>
@@ -146,10 +149,10 @@ function App() {
         <div className={`flex-1 flex flex-col justify-center items-center p-6 transition-all duration-700 ease-in-out absolute inset-0 z-40 ${appState === AppState.VISUALIZING ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 scale-100'}`}>
             <div className="max-w-2xl w-full relative flex flex-col max-h-full">
                  <div className="mb-8 md:mb-12 text-center space-y-4 shrink-0">
-                    <h1 className="text-6xl md:text-8xl font-black font-montserrat tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-400 to-white animate-text-shimmer animate-slide-in-down drop-shadow-sm select-none pb-2 px-4" style={{ animationDelay: '0ms' }}>
+                    <h1 className="text-6xl md:text-8xl font-black font-montserrat tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 via-white to-neutral-200 animate-text-shimmer animate-slide-in-down drop-shadow-sm select-none pb-2 px-4" style={{ animationDelay: '0ms' }}>
                         {t.appTitle}
                     </h1>
-                    <p className="text-sm text-neutral-500 max-w-xs mx-auto uppercase tracking-widest font-medium animate-slide-in-down" style={{ animationDelay: '100ms' }}>
+                    <p className="text-xs md:text-sm text-neutral-500 max-w-xs mx-auto uppercase tracking-[0.2em] font-medium animate-slide-in-down" style={{ animationDelay: '100ms' }}>
                         {t.appSubtitle}
                     </p>
                 </div>
@@ -185,7 +188,7 @@ function App() {
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 animate-fade-in pointer-events-auto">
                     <button 
                         onClick={handleReset}
-                        className="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/10 rounded-full hover:bg-white hover:text-black transition-all group"
+                        className="w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-xl border border-white/10 rounded-full hover:bg-white hover:text-black hover:border-white transition-all group"
                     >
                         <ArrowLeft size={16} />
                     </button>

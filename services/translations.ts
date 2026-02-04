@@ -18,7 +18,6 @@ export interface Translation {
         errorCalculation: string;
         noLocationsFound: string;
         tryDifferentSearch: string;
-        recent: string; // New
     };
     settings: {
         title: string;
@@ -57,7 +56,7 @@ export interface Translation {
         showMusicOverlay: string;
         showSocialOverlay: string;
         installApp: string;
-        installNote: string; // New
+        installNote: string;
         speeds: {
             slow: string;
             normal: string;
@@ -99,8 +98,7 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Select start and end points.",
       errorCalculation: "Could not calculate a route between these points. Please try different locations.",
       noLocationsFound: "No locations found",
-      tryDifferentSearch: "Try a different search term",
-      recent: "Recent"
+      tryDifferentSearch: "Try a different search term"
     },
     settings: {
       title: "Settings",
@@ -179,8 +177,7 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Selecione os pontos de partida e chegada.",
       errorCalculation: "Não foi possível calcular a rota. Tente locais diferentes.",
       noLocationsFound: "Nenhum local encontrado",
-      tryDifferentSearch: "Tente outro termo de busca",
-      recent: "Recentes"
+      tryDifferentSearch: "Tente outro termo de busca"
     },
     settings: {
       title: "Configurações",

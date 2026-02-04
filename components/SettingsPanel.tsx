@@ -140,7 +140,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
         >
             {/* Backdrop */}
             <div 
-                className={`absolute inset-0 bg-black/40 backdrop-blur-sm ease-out ${transitionClass} ${
+                className={`absolute inset-0 bg-black/60 backdrop-blur-sm ease-out ${transitionClass} ${
                     isOpen ? 'opacity-100' : 'opacity-0'
                 }`} 
                 onClick={onClose}
@@ -150,7 +150,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
             <div 
                 className={`
                     relative w-full h-[100dvh] md:w-[500px] md:h-auto md:max-h-[85vh] 
-                    bg-neutral-900 border-l md:border border-white/10 shadow-2xl flex flex-col overflow-hidden md:rounded-2xl
+                    bg-neutral-900 border-l md:border border-white/5 inner-border-highlight shadow-2xl flex flex-col overflow-hidden md:rounded-2xl
                     cubic-bezier(0.2, 0.8, 0.2, 1) ${transitionClass}
                     ${isOpen 
                         ? 'translate-x-0 translate-y-0 opacity-100 scale-100' 
@@ -160,7 +160,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
             >
                 
                 {/* Header */}
-                <div className="flex flex-col bg-neutral-900/95 backdrop-blur-xl shrink-0 z-10 border-b border-white/10">
+                <div className="flex flex-col bg-neutral-900/95 backdrop-blur-xl shrink-0 z-10 border-b border-white/5">
                     <div className="flex items-center justify-between p-5 pb-4">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-white/5 rounded-full border border-white/5 shadow-inner">
@@ -189,7 +189,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as SettingsTab)}
-                                className={`pb-3 text-[11px] font-bold uppercase tracking-widest border-b-2 transition-colors ${
+                                className={`pb-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-colors ${
                                     activeTab === tab.id 
                                     ? 'text-white border-white' 
                                     : 'text-neutral-500 border-transparent hover:text-neutral-300'
@@ -208,7 +208,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     {activeTab === 'SOCIAL' && (
                         <div className="space-y-8 animate-fade-in">
                             <Section title={t.socialFeatures} icon={Users}>
-                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-5">
+                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 inner-border-highlight p-4 space-y-5">
                                     
                                     {/* Master Switch */}
                                     <div className="pb-4 border-b border-white/5">
@@ -234,7 +234,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                 value={config.socialHandle}
                                                 onChange={(e) => onChange({...config, socialHandle: e.target.value})}
                                                 disabled={!config.socialEnabled}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono placeholder-neutral-700"
+                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono placeholder-neutral-700 inner-border-highlight"
                                                 placeholder="@username"
                                             />
                                         </div>
@@ -246,7 +246,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                 <span className="text-xs font-medium text-neutral-400">{t.profileImage}</span>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                 <div className="w-10 h-10 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
+                                                 <div className="w-10 h-10 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden inner-border-highlight">
                                                     {config.userImage ? (
                                                         <img src={config.userImage} alt="Profile" className="w-full h-full object-cover" />
                                                     ) : (
@@ -355,7 +355,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                             className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] ${
                                                 config.animationType === opt.id
                                                     ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10'
-                                                    : 'bg-black/20 border-white/5 text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
+                                                    : 'bg-black/20 border-white/5 inner-border-highlight text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
                                             }`}
                                         >
                                             <div className="flex items-center gap-2 w-full">
@@ -384,7 +384,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                             </Section>
 
                             <Section title={t.presentation} icon={Layers}>
-                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-5">
+                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 inner-border-highlight p-4 space-y-5">
                                     {/* Intro */}
                                     <div className="space-y-4">
                                         <ToggleRow 
@@ -421,7 +421,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     {activeTab === 'STYLE' && (
                         <div className="space-y-8 animate-fade-in">
                              <Section title={t.mapStyle} icon={Palette}>
-                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-6">
+                                <div className="bg-neutral-800/30 rounded-xl border border-white/5 inner-border-highlight p-4 space-y-6">
                                     <ToggleRow 
                                         label={t.showMapTiles} 
                                         checked={config.showMap} 
@@ -511,7 +511,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 </div>
 
                 {/* Footer */}
-                <div className="p-5 border-t border-white/10 bg-neutral-900/95 backdrop-blur-md shrink-0 pb-safe z-10">
+                <div className="p-5 border-t border-white/5 bg-neutral-900/95 backdrop-blur-md shrink-0 pb-safe z-10">
                     
                     {/* Install App Section - Only shows if supported, not installed, AND user is on mobile */}
                     {canInstall && isMobile && (

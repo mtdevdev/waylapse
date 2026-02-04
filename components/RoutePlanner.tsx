@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, Clock, History, ArrowUpDown, ArrowRight, ChevronDown } from 'lucide-react';
+import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, ArrowUpDown } from 'lucide-react';
 import { RouteDetails, AppState, LocationLabel, Language } from '../types';
 import { searchLocation, getRouteData, formatDistance, formatDuration, NominatimResult } from '../services/mapUtils';
 import { Translation } from '../services/translations';
@@ -23,12 +23,6 @@ interface PointState {
     lat: number;
     lon: number;
     label: LocationLabel;
-}
-
-interface HistoryItem {
-    start: PointState;
-    end: PointState;
-    timestamp: number;
 }
 
 const extractLabel = (result: NominatimResult): LocationLabel => {
@@ -193,8 +187,8 @@ const LocationInput = ({
 
     return (
         <div ref={wrapperRef} className={`relative group w-full ${zIndexClass}`}>
-            <div className="relative h-12 md:h-14 bg-neutral-900/80 border border-white/5 focus-within:border-white/20 focus-within:bg-neutral-900 rounded-lg transition-all overflow-hidden flex items-center pr-10">
-                <Icon className="absolute left-4 text-neutral-500 group-focus-within:text-white transition-colors pointer-events-none shrink-0" size={18} />
+            <div className="relative h-12 md:h-14 bg-neutral-900/50 backdrop-blur-md border border-white/5 inner-border-highlight focus-within:border-white/20 focus-within:bg-neutral-900/80 rounded-xl transition-all duration-300 overflow-hidden flex items-center pr-10">
+                <Icon className="absolute left-4 text-neutral-500 group-focus-within:text-white transition-colors duration-300 pointer-events-none shrink-0" size={16} />
                 <input
                     type="text"
                     value={query}
@@ -209,7 +203,7 @@ const LocationInput = ({
                     onBlur={handleBlur}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className="w-full h-full bg-transparent p-0 pl-12 pr-4 text-white placeholder-neutral-600 outline-none font-medium text-sm truncate tracking-wide"
+                    className="w-full h-full bg-transparent p-0 pl-12 pr-4 text-white placeholder-neutral-600 outline-none font-medium text-xs md:text-sm truncate tracking-wide"
                 />
                 
                 <div className="absolute right-3 flex items-center gap-2">
@@ -227,22 +221,22 @@ const LocationInput = ({
             </div>
             
             {showSuggestions && (suggestions.length > 0 || (noResults && !isLoading)) && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 rounded-lg shadow-2xl border border-white/10 overflow-hidden z-[60] max-h-[40vh] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 overflow-hidden z-[60] max-h-[40vh] overflow-y-auto inner-border-highlight">
                     {suggestions.length > 0 ? (
                         suggestions.map((s) => (
                             <button
                                 key={s.place_id}
                                 onMouseDown={() => handleSelect(s)}
-                                className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors"
+                                className="w-full text-left px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors group"
                             >
-                                <p className="text-sm font-medium text-neutral-200 line-clamp-1">{s.display_name.split(',')[0]}</p>
-                                <p className="text-[10px] text-neutral-500 line-clamp-1 mt-0.5">{s.display_name}</p>
+                                <p className="text-sm font-medium text-neutral-300 group-hover:text-white line-clamp-1 transition-colors">{s.display_name.split(',')[0]}</p>
+                                <p className="text-[10px] text-neutral-600 group-hover:text-neutral-500 line-clamp-1 mt-0.5 transition-colors">{s.display_name}</p>
                             </button>
                         ))
                     ) : (
                         <div className="p-4 text-center">
-                            <AlertCircle className="mx-auto text-neutral-500 mb-2" size={18} />
-                            <p className="text-sm text-neutral-400 font-medium">{t.noLocationsFound}</p>
+                            <AlertCircle className="mx-auto text-neutral-600 mb-2" size={16} />
+                            <p className="text-xs text-neutral-400 font-medium">{t.noLocationsFound}</p>
                             <p className="text-[10px] text-neutral-600 mt-1">{t.tryDifferentSearch}</p>
                         </div>
                     )}
@@ -257,63 +251,10 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const [endPoint, setEndPoint] = useState<PointState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
-  
-  // History State
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-
-  // Load history on mount
-  useEffect(() => {
-      try {
-          // Changed key from flowpath_history_routes to waylapse_history_routes
-          const saved = localStorage.getItem('waylapse_history_routes');
-          if (saved) {
-              const parsed = JSON.parse(saved);
-              // Basic validation to ensure data integrity
-              if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].start && parsed[0].end) {
-                  setHistory(parsed);
-              }
-          }
-      } catch (e) {
-          console.warn("Failed to load history");
-      }
-  }, []);
-
-  const addToHistory = (start: PointState, end: PointState) => {
-      const newItem: HistoryItem = { start, end, timestamp: Date.now() };
-      
-      setHistory(prev => {
-          // Dedup: remove identical routes (matching start AND end names)
-          const filtered = prev.filter(item => 
-              !(item.start.name === start.name && item.end.name === end.name)
-          );
-          // Add to top, keep last 5
-          const updated = [newItem, ...filtered].slice(0, 5);
-          try {
-              // Changed key from flowpath_history_routes to waylapse_history_routes
-              localStorage.setItem('waylapse_history_routes', JSON.stringify(updated));
-          } catch(e) {}
-          return updated;
-      });
-      setIsHistoryOpen(true);
-  };
-
-  const handleHistoryClick = (item: HistoryItem) => {
-      setStartPoint(item.start);
-      setEndPoint(item.end);
-  };
-  
-  const removeHistoryItem = (e: React.MouseEvent, timestamp: number) => {
-      e.stopPropagation();
-      setHistory(prev => {
-          const updated = prev.filter(item => item.timestamp !== timestamp);
-          // Changed key from flowpath_history_routes to waylapse_history_routes
-          localStorage.setItem('waylapse_history_routes', JSON.stringify(updated));
-          return updated;
-      });
-  };
+  const [swapRotation, setSwapRotation] = useState(0);
 
   const handleSwap = () => {
+      setSwapRotation(prev => prev + 180);
       const temp = startPoint;
       setStartPoint(endPoint);
       setEndPoint(temp);
@@ -334,9 +275,6 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             [endPoint.lat, endPoint.lon], 
             'driving'
         );
-
-        // Save entire route to history
-        addToHistory(startPoint, endPoint);
 
         onRouteFound({
             startAddress: startPoint.name.split(',')[0],
@@ -367,7 +305,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
         
         <div className="relative animate-slide-in-up isolate" style={{ animationDelay: '300ms' }}>
             {/* Visual Connector Line (Left) */}
-            <div className="absolute left-[1.65rem] top-8 bottom-8 w-0.5 bg-gradient-to-b from-white/5 via-white/20 to-white/5 -z-10 pointer-events-none"></div>
+            <div className="absolute left-[1.65rem] top-8 bottom-8 w-0.5 bg-gradient-to-b from-white/0 via-white/10 to-white/0 -z-10 pointer-events-none"></div>
 
             <div className="space-y-3">
                 <LocationInput 
@@ -393,83 +331,35 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             {!isLocked && (
                 <button 
                     onClick={handleSwap}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-neutral-800 border border-white/10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-700 hover:border-white/30 transition-all shadow-xl z-[60] group"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-neutral-900 border border-white/10 rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800 hover:border-white/30 transition-all shadow-lg hover:shadow-xl z-[60] group inner-border-highlight active:scale-90"
                     title="Swap locations"
                 >
-                    <ArrowUpDown size={14} className="group-hover:scale-110 transition-transform" />
+                    <ArrowUpDown 
+                        size={14} 
+                        style={{ transform: `rotate(${swapRotation}deg)` }} 
+                        className="transition-transform duration-500 ease-in-out" 
+                    />
                 </button>
             )}
         </div>
-        
-        {/* History Routes */}
-        {history.length > 0 && !isLocked && (
-            <div className="animate-slide-in-up" style={{ animationDelay: '400ms' }}>
-                <button 
-                    onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-                    className="w-full flex items-center justify-between py-2 px-1 group cursor-pointer mb-1 hover:bg-white/5 rounded-lg transition-colors"
-                >
-                    <div className="flex items-center gap-2">
-                        <History size={10} className="text-neutral-500 group-hover:text-neutral-300 transition-colors" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500 group-hover:text-neutral-300 transition-colors">{t.recent}</span>
-                    </div>
-                    <ChevronDown 
-                        size={14} 
-                        className={`text-neutral-600 group-hover:text-neutral-400 transition-transform duration-300 ${isHistoryOpen ? 'rotate-180' : ''}`} 
-                    />
-                </button>
-
-                <div 
-                    className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                        isHistoryOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                >
-                    <div className="flex flex-col gap-2 pt-1 pb-2">
-                        {history.map((item) => (
-                            <div
-                                key={item.timestamp}
-                                onClick={() => handleHistoryClick(item)}
-                                className="group flex items-center justify-between pl-4 pr-2 py-3 bg-neutral-900/50 border border-white/5 rounded-xl cursor-pointer hover:bg-neutral-900 hover:border-white/20 transition-all animate-fade-in"
-                            >
-                                <div className="flex items-center gap-2 overflow-hidden">
-                                    <span className="text-xs font-medium text-neutral-300 truncate max-w-[120px] md:max-w-[140px]">
-                                        {item.start.label.title || item.start.name.split(',')[0]}
-                                    </span>
-                                    <ArrowRight size={10} className="text-neutral-600 shrink-0" />
-                                    <span className="text-xs font-bold text-white truncate max-w-[120px] md:max-w-[140px]">
-                                        {item.end.label.title || item.end.name.split(',')[0]}
-                                    </span>
-                                </div>
-                                
-                                <button 
-                                    onClick={(e) => removeHistoryItem(e, item.timestamp)}
-                                    className="p-1.5 rounded-full hover:bg-white/10 text-neutral-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                >
-                                    <X size={12} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        )}
 
         {error && (
-          <p className="text-red-400 text-xs text-center font-mono bg-red-900/20 p-2 rounded border border-red-900/30 animate-fade-in">{error}</p>
+          <p className="text-red-400 text-xs text-center font-mono bg-red-500/10 p-2 rounded border border-red-500/20 animate-fade-in">{error}</p>
         )}
 
         <div className="pt-2 animate-slide-in-up" style={{ animationDelay: '500ms' }}>
             <button 
                 onClick={onOpenSettings}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900/50 border border-white/10 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 hover:border-white/20 transition-all mb-4 group"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900/40 border border-white/5 inner-border-highlight rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10 transition-all mb-4 group"
             >
                 <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
-                <span className="text-xs font-medium uppercase tracking-widest">{t.configuration}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest">{t.configuration}</span>
             </button>
 
             <button
                 onClick={handleCalculate}
                 disabled={isLoading || isLocked || !startPoint || !endPoint}
-                className="w-full bg-white text-black h-14 rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-neutral-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-[0.98]"
+                className="w-full bg-white text-black h-14 rounded-xl font-bold text-xs md:text-sm tracking-[0.15em] uppercase hover:bg-neutral-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(255,255,255,0.15)] hover:shadow-[0_0_35px_rgba(255,255,255,0.25)] active:scale-[0.98]"
             >
                 {isLoading ? (
                     <Loader2 className="animate-spin" size={18} />
