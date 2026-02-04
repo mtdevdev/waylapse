@@ -119,6 +119,14 @@ export const parseStateFromUrl = (): ParsedUrlState => {
 
         const audioUrl = params.get('audio');
         if (audioUrl) result.configPartial!.customAudioUrl = audioUrl;
+
+        // CRITICAL FIX: If music is present, we must enable socialEnabled because InlineMap
+        // uses it as a master switch for media playback. However, if the 'social' param
+        // was NOT sent (meaning user unchecked "Social Identity"), we hide the social overlay.
+        if (!params.has('social')) {
+            result.configPartial!.socialEnabled = true;
+            result.configPartial!.showSocialOverlay = false;
+        }
     }
 
     const anim = params.get('anim');

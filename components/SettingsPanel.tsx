@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useEffect } from 'react';
-import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles, Search, Globe, FileAudio, Loader2, Play, Pause } from 'lucide-react';
+import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles, Search, Globe, FileAudio, Loader2, Play, Pause, Clock, Infinity } from 'lucide-react';
 import { MapConfig, COLOR_OPTIONS, AnimationType } from '../types';
 import { Translation } from '../services/translations';
 
@@ -408,9 +408,15 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                     {/* Mode Content */}
                                                     {audioMode === 'SEARCH' ? (
                                                         <div className="space-y-3 animate-fade-in">
-                                                            <div className="flex items-center gap-2 text-[10px] text-green-400 font-medium bg-green-900/20 px-3 py-1.5 rounded-full border border-green-900/30 w-fit">
-                                                                <Globe size={10} />
-                                                                {t.shareable}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2 text-[10px] text-green-400 font-medium bg-green-900/20 px-3 py-1.5 rounded-full border border-green-900/30 w-fit">
+                                                                    <Globe size={10} />
+                                                                    {t.shareable}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-medium">
+                                                                    <Clock size={10} />
+                                                                    {t.previewNote}
+                                                                </div>
                                                             </div>
 
                                                             <div className="flex gap-2">
@@ -462,9 +468,15 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                         </div>
                                                     ) : (
                                                         <div className="space-y-3 animate-fade-in">
-                                                            <div className="flex items-center gap-2 text-[10px] text-yellow-400 font-medium bg-yellow-900/20 px-3 py-1.5 rounded-full border border-yellow-900/30 w-fit">
-                                                                <FileAudio size={10} />
-                                                                {t.localOnly}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2 text-[10px] text-yellow-400 font-medium bg-yellow-900/20 px-3 py-1.5 rounded-full border border-yellow-900/30 w-fit">
+                                                                    <FileAudio size={10} />
+                                                                    {t.localOnly}
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-medium">
+                                                                    <Infinity size={10} />
+                                                                    {t.localNote}
+                                                                </div>
                                                             </div>
                                                             <div className="relative group">
                                                                 <input 
