@@ -23,6 +23,17 @@ export interface Translation {
     settings: {
         title: string;
         subtitle: string;
+        help: string;
+        helpModal: {
+            title: string;
+            recordingTitle: string;
+            recordingDesc: string;
+            saveTitle: string;
+            saveDesc: string;
+            tipsTitle: string;
+            tips: string[];
+            close: string;
+        };
         tabs: {
             motion: string;
             style: string;
@@ -80,7 +91,13 @@ export interface Translation {
             takeoff: { label: string; desc: string };
             landing: { label: string; desc: string };
             static: { label: string; desc: string };
+            high_alt: { label: string; desc: string };
+            low_pass: { label: string; desc: string };
+            breathe: { label: string; desc: string };
+            orbit: { label: string; desc: string };
         };
+        seeMore: string;
+        seeLess: string;
     };
     map: {
         origin: string;
@@ -115,6 +132,22 @@ export const translations: Record<Language, Translation> = {
     settings: {
       title: "Settings",
       subtitle: "Configure visualization",
+      help: "Help",
+      helpModal: {
+          title: "Help Center",
+          recordingTitle: "Screen Recording",
+          recordingDesc: "Waylapse does not yet support native video export. To save your journey, please use your device's built-in screen recording feature.",
+          saveTitle: "Auto-Save",
+          saveDesc: "Your configuration settings, including theme and toggle preferences, are automatically saved to your browser.",
+          tipsTitle: "Quick Tips",
+          tips: [
+              "Mouse inactivity auto-hides the interface for clean recording.",
+              "Use 'Social Mode' to overlay your handle and music track.",
+              "Search provides 30s previews. Upload local files for full audio.",
+              "Lower brightness creates a cinematic 'dark mode' effect."
+          ],
+          close: "Close"
+      },
       tabs: {
           motion: "Motion",
           style: "Style",
@@ -171,8 +204,14 @@ export const translations: Record<Language, Translation> = {
         glide: { label: "Glide", desc: "Smooth medium altitude" },
         takeoff: { label: "Takeoff", desc: "Gradual ascent" },
         landing: { label: "Landing", desc: "Gradual descent" },
-        static: { label: "Static", desc: "Fixed full route view" }
-      }
+        static: { label: "Static", desc: "Fixed full route view" },
+        high_alt: { label: "High Alt", desc: "Satellite-style view" },
+        low_pass: { label: "Low Pass", desc: "Street-level flyover" },
+        breathe: { label: "Breathe", desc: "Oscillating zoom effect" },
+        orbit: { label: "Orbit", desc: "Rotating camera view" }
+      },
+      seeMore: "See More",
+      seeLess: "See Less"
     },
     map: {
       origin: "Origin",
@@ -205,6 +244,22 @@ export const translations: Record<Language, Translation> = {
     settings: {
       title: "Configurações",
       subtitle: "Configurar visualização",
+      help: "Ajuda",
+      helpModal: {
+          title: "Central de Ajuda",
+          recordingTitle: "Gravação de Tela",
+          recordingDesc: "O Waylapse ainda não suporta exportação de vídeo nativa. Para salvar sua viagem, use o recurso de gravação de tela do seu dispositivo.",
+          saveTitle: "Salvamento Automático",
+          saveDesc: "Suas configurações, incluindo tema e preferências de visualização, são salvas automaticamente no navegador.",
+          tipsTitle: "Dicas Rápidas",
+          tips: [
+              "A inatividade do mouse oculta a interface para gravação limpa.",
+              "Use o 'Modo Social' para sobrepor seu usuário e trilha sonora.",
+              "Busca oferece prévias de 30s. Use arquivos locais para áudio completo.",
+              "Reduzir o brilho cria um efeito cinematográfico 'dark mode'."
+          ],
+          close: "Fechar"
+      },
       tabs: {
           motion: "Movimento",
           style: "Estilo",
@@ -261,8 +316,14 @@ export const translations: Record<Language, Translation> = {
         glide: { label: "Planar", desc: "Altitude média suave" },
         takeoff: { label: "Decolagem", desc: "Subida gradual" },
         landing: { label: "Aterrissagem", desc: "Descida gradual" },
-        static: { label: "Estático", desc: "Visão fixa da rota" }
-      }
+        static: { label: "Estático", desc: "Visão fixa da rota" },
+        high_alt: { label: "Alta Altitude", desc: "Visão de satélite" },
+        low_pass: { label: "Voo Baixo", desc: "Sobrevoo rente ao chão" },
+        breathe: { label: "Respirar", desc: "Zoom oscilante suave" },
+        orbit: { label: "Órbita", desc: "Câmera rotativa" }
+      },
+      seeMore: "Ver Mais",
+      seeLess: "Ver Menos"
     },
     map: {
       origin: "Origin",

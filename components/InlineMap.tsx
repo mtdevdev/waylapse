@@ -526,6 +526,19 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
         case 'GLIDE': map.setView(point, 14, { animate: false }); break;
         case 'TAKEOFF': map.setView(point, 16 - (progress * 6), { animate: false }); break;
         case 'LANDING': map.setView(point, 10 + (progress * 6), { animate: false }); break;
+        case 'HIGH_ALT': map.setView(point, 11, { animate: false }); break;
+        case 'LOW_PASS': map.setView(point, 18, { animate: false }); break;
+        case 'BREATHE': 
+            const breatheZoom = 14 + (Math.sin(progress * Math.PI * 4) * 1.5); // 2 cycles, +/- 1.5 zoom
+            map.setView(point, breatheZoom, { animate: false }); 
+            break;
+        case 'ORBIT':
+            const orbitRadius = 0.003; 
+            const angle = progress * Math.PI * 4; // 2 full circles
+            const offsetLat = Math.cos(angle) * orbitRadius;
+            const offsetLon = Math.sin(angle) * orbitRadius;
+            map.setView([point[0] + offsetLat, point[1] + offsetLon], 15, { animate: false });
+            break;
         case 'CINEMATIC': default:
             let targetZoom = 14;
             if (progress < 0.2) targetZoom = 15 - ((progress / 0.2) * 2);
@@ -570,6 +583,11 @@ const InlineMap: React.FC<Props> = ({ route, config, t, language }) => {
   };
 
   const restart = () => {
+      // Audio Reset Fix: Ensure audio restarts from 0
+      if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+      }
+
       setIntroStage(IntroStage.NONE);
       setIsPlaying(false);
       progressRef.current = 0;

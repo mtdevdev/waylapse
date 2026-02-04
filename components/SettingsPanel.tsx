@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useEffect } from 'react';
-import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles, Search, Globe, FileAudio, Loader2, Play, Pause, Clock, Infinity } from 'lucide-react';
+import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles, Search, Globe, FileAudio, Loader2, Play, Pause, Clock, Infinity, HelpCircle, Globe2, Navigation, Wind, Rotate3D, ChevronDown, ChevronUp, Lightbulb, Save } from 'lucide-react';
 import { MapConfig, COLOR_OPTIONS, AnimationType } from '../types';
 import { Translation } from '../services/translations';
 
@@ -30,11 +30,14 @@ interface ITunesTrack {
 }
 
 // Extracted components to prevent re-mounting on parent render
-const Section = ({ title, icon: Icon, children }: { title: string, icon: any, children?: React.ReactNode }) => (
+const Section = ({ title, icon: Icon, children, rightContent }: { title: string, icon: any, children?: React.ReactNode, rightContent?: React.ReactNode }) => (
     <div className="space-y-4">
-         <div className="flex items-center gap-2 pb-2 border-b border-white/5">
-            <Icon size={14} className="text-neutral-500" />
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{title}</h3>
+         <div className="flex items-center justify-between pb-2 border-b border-white/5">
+            <div className="flex items-center gap-2">
+                <Icon size={14} className="text-neutral-500" />
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">{title}</h3>
+            </div>
+            {rightContent}
         </div>
         <div className="space-y-5">
             {children}
@@ -79,6 +82,12 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
     const [hasOpened, setHasOpened] = useState(false);
     
+    // Help Modal State
+    const [showHelp, setShowHelp] = useState(false);
+    
+    // Animation List State
+    const [showAllMotions, setShowAllMotions] = useState(false);
+
     // Audio State
     const [audioMode, setAudioMode] = useState<AudioMode>('SEARCH');
     const [searchQuery, setSearchQuery] = useState('');
@@ -112,14 +121,27 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
         }
     }, [isOpen, previewAudio]);
 
+    // Order: Cinematic, Focus, Glide, Static (Overview) are primary
+    // Rest are secondary
     const animationOptions: { id: AnimationType; label: string; icon: any; desc: string }[] = [
+        // Primary
         { id: 'CINEMATIC', label: t.animations.cinematic.label, icon: Zap, desc: t.animations.cinematic.desc },
         { id: 'FOCUS', label: t.animations.focus.label, icon: Target, desc: t.animations.focus.desc },
         { id: 'GLIDE', label: t.animations.glide.label, icon: Plane, desc: t.animations.glide.desc },
+        { id: 'OVERVIEW', label: t.animations.static.label, icon: Map, desc: t.animations.static.desc },
+        // Secondary
         { id: 'TAKEOFF', label: t.animations.takeoff.label, icon: ZoomOut, desc: t.animations.takeoff.desc },
         { id: 'LANDING', label: t.animations.landing.label, icon: ZoomIn, desc: t.animations.landing.desc },
-        { id: 'OVERVIEW', label: t.animations.static.label, icon: Map, desc: t.animations.static.desc },
+        { id: 'HIGH_ALT', label: t.animations.high_alt.label, icon: Globe2, desc: t.animations.high_alt.desc },
+        { id: 'LOW_PASS', label: t.animations.low_pass.label, icon: Navigation, desc: t.animations.low_pass.desc },
+        { id: 'BREATHE', label: t.animations.breathe.label, icon: Wind, desc: t.animations.breathe.desc },
+        { id: 'ORBIT', label: t.animations.orbit.label, icon: Rotate3D, desc: t.animations.orbit.desc },
     ];
+
+    const activeMotionLabel = animationOptions.find(o => o.id === config.animationType)?.label;
+
+    const primaryMotions = animationOptions.slice(0, 4);
+    const secondaryMotions = animationOptions.slice(4);
 
     const fileToBase64 = (file: File, callback: (result: string) => void) => {
         const reader = new FileReader();
@@ -238,6 +260,77 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     }
                 `}
             >
+                {/* HELP MODAL OVERLAY */}
+                {showHelp && (
+                    <div className="absolute inset-0 z-50 bg-neutral-900 animate-fade-in flex flex-col">
+                        <div className="flex items-center justify-between p-5 border-b border-white/5 bg-neutral-900 z-10">
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-white">{t.helpModal.title}</h3>
+                            <button onClick={() => setShowHelp(false)} className="p-2 hover:bg-white/10 rounded-full text-neutral-400 hover:text-white transition-colors">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                            {/* Recording Section */}
+                            <div className="relative overflow-hidden rounded-2xl bg-neutral-800/40 border border-white/5 p-6">
+                                <div className="absolute top-0 right-0 p-6 opacity-10">
+                                    <Video size={120} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                                        <Video size={20} className="text-red-400" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-white mb-2">{t.helpModal.recordingTitle}</h4>
+                                    <p className="text-sm text-neutral-400 leading-relaxed max-w-sm">
+                                        {t.helpModal.recordingDesc}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Auto-Save Section */}
+                            <div className="relative overflow-hidden rounded-2xl bg-neutral-800/40 border border-white/5 p-6">
+                                <div className="absolute top-0 right-0 p-6 opacity-10">
+                                    <Save size={120} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 border border-blue-500/20">
+                                        <Save size={20} className="text-blue-400" />
+                                    </div>
+                                    <h4 className="text-lg font-bold text-white mb-2">{t.helpModal.saveTitle}</h4>
+                                    <p className="text-sm text-neutral-400 leading-relaxed max-w-sm">
+                                        {t.helpModal.saveDesc}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Tips Grid */}
+                            <div className="pt-2">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Lightbulb size={16} className="text-yellow-400" />
+                                    <h4 className="text-sm font-bold uppercase tracking-widest text-neutral-500">{t.helpModal.tipsTitle}</h4>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {t.helpModal.tips.map((tip, i) => (
+                                        <div key={i} className="flex gap-3 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-white/40 mt-2 shrink-0" />
+                                            <span className="text-xs text-neutral-300 leading-relaxed">{tip}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-5 border-t border-white/5 bg-neutral-900 shrink-0">
+                            <button 
+                                onClick={() => setShowHelp(false)}
+                                className="w-full py-3.5 bg-white text-black font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-neutral-200 transition-colors shadow-lg active:scale-[0.98]"
+                            >
+                                {t.helpModal.close}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex flex-col bg-neutral-900/95 backdrop-blur-xl shrink-0 z-10 border-b border-white/5">
                     <div className="flex items-center justify-between p-5 pb-4">
@@ -516,25 +609,73 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     {/* TAB: MOTION (Camera, Intro, Duration) */}
                     {activeTab === 'MOTION' && (
                         <div className="space-y-8 animate-fade-in">
-                            <Section title={t.cameraMotion} icon={Video}>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {animationOptions.map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => onChange({...config, animationType: opt.id})}
-                                            className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] ${
-                                                config.animationType === opt.id
-                                                    ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10'
-                                                    : 'bg-black/20 border-white/5 inner-border-highlight text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2 w-full">
-                                                <opt.icon size={14} className={config.animationType === opt.id ? 'text-black' : 'text-neutral-500'} />
-                                                <span className="text-xs font-bold">{opt.label}</span>
-                                            </div>
-                                            <span className={`text-[9px] leading-tight mt-0.5 ${config.animationType === opt.id ? 'text-black/60' : 'text-neutral-600'}`}>{opt.desc}</span>
-                                        </button>
-                                    ))}
+                            <Section 
+                                title={t.cameraMotion} 
+                                icon={Video}
+                                rightContent={
+                                    <span className="text-[10px] font-bold text-white/90 bg-white/10 px-2 py-0.5 rounded border border-white/5">
+                                        {activeMotionLabel}
+                                    </span>
+                                }
+                            >
+                                <div className="flex flex-col gap-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {/* Primary Animations */}
+                                        {primaryMotions.map((opt) => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => onChange({...config, animationType: opt.id})}
+                                                className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] ${
+                                                    config.animationType === opt.id
+                                                        ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10'
+                                                        : 'bg-black/20 border-white/5 inner-border-highlight text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2 w-full">
+                                                    <opt.icon size={14} className={config.animationType === opt.id ? 'text-black' : 'text-neutral-500'} />
+                                                    <span className="text-xs font-bold">{opt.label}</span>
+                                                </div>
+                                                <span className={`text-[9px] leading-tight mt-0.5 ${config.animationType === opt.id ? 'text-black/60' : 'text-neutral-600'}`}>{opt.desc}</span>
+                                            </button>
+                                        ))}
+                                        
+                                        {/* Secondary Animations (Collapsible) */}
+                                        {showAllMotions && secondaryMotions.map((opt) => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => onChange({...config, animationType: opt.id})}
+                                                className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] animate-fade-in ${
+                                                    config.animationType === opt.id
+                                                        ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10'
+                                                        : 'bg-black/20 border-white/5 inner-border-highlight text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-2 w-full">
+                                                    <opt.icon size={14} className={config.animationType === opt.id ? 'text-black' : 'text-neutral-500'} />
+                                                    <span className="text-xs font-bold">{opt.label}</span>
+                                                </div>
+                                                <span className={`text-[9px] leading-tight mt-0.5 ${config.animationType === opt.id ? 'text-black/60' : 'text-neutral-600'}`}>{opt.desc}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    {/* Expand/Collapse Button - No Absolute Positioning */}
+                                    <button 
+                                        onClick={() => setShowAllMotions(!showAllMotions)}
+                                        className="w-full flex items-center justify-center gap-2 py-2.5 mt-1 text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-white transition-colors border border-transparent hover:bg-white/5 rounded-lg"
+                                    >
+                                        {showAllMotions ? (
+                                            <>
+                                                <ChevronUp size={12} />
+                                                {t.seeLess}
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ChevronDown size={12} />
+                                                {t.seeMore}
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
 
                                 <div className="space-y-4 pt-4 px-1">
@@ -710,13 +851,23 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                         </button>
                     )}
 
-                    <button 
-                        onClick={onReset}
-                        className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-white/10 active:scale-[0.98]"
-                    >
-                        <RotateCw size={14} />
-                        {t.resetDefaults}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowHelp(true)}
+                            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10 text-neutral-400 hover:text-white"
+                            title={t.help}
+                        >
+                            <HelpCircle size={18} />
+                        </button>
+                        
+                        <button 
+                            onClick={onReset}
+                            className="flex-1 h-12 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-white/10 active:scale-[0.98]"
+                        >
+                            <RotateCw size={14} />
+                            {t.resetDefaults}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

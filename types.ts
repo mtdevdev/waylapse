@@ -11,7 +11,10 @@ export type AnimationType =
   | 'GLIDE'      // Medium follow (Zoom 14)
   | 'CINEMATIC'  // Variable zoom
   | 'LANDING'    // Zoom in from far to near
-  | 'TAKEOFF';   // Zoom out from near to far
+  | 'TAKEOFF'    // Zoom out from near to far
+  | 'HIGH_ALT'   // Fixed High Altitude (Zoom 11)
+  | 'LOW_PASS'   // Fixed Low Altitude (Zoom 18)
+  | 'BREATHE';   // Oscillating Zoom
 
 export type Language = 'en' | 'pt-BR';
 
