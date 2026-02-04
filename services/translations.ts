@@ -58,6 +58,7 @@ export interface Translation {
         showSocialOverlay: string;
         installApp: string;
         installNote: string;
+        exportVideo: string;
         speeds: {
             slow: string;
             normal: string;
@@ -143,6 +144,7 @@ export const translations: Record<Language, Translation> = {
       showSocialOverlay: "Show Username Tag",
       installApp: "Install App",
       installNote: "For the best experience",
+      exportVideo: "Export Video",
       speeds: {
         slow: "SLOW",
         normal: "NORMAL",
@@ -226,6 +228,7 @@ export const translations: Record<Language, Translation> = {
       showSocialOverlay: "Mostrar Tag de Usuário",
       installApp: "Instalar App",
       installNote: "Para a melhor experiência",
+      exportVideo: "Exportar Vídeo",
       speeds: {
         slow: "LENTO",
         normal: "NORMAL",

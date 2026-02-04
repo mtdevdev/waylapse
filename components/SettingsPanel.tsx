@@ -19,6 +19,7 @@ interface Props {
     onInstallApp: () => void;
     canInstall: boolean;
     isMobile: boolean;
+    onTriggerExport: () => void; // New prop to trigger export
 }
 
 // Extracted components to prevent re-mounting on parent render
@@ -65,7 +66,7 @@ const ToggleRow = ({ label, checked, onChange, description, disabled = false }: 
 
 type SettingsTab = 'MOTION' | 'STYLE' | 'SOCIAL';
 
-const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, isOpen, t, onInstallApp, canInstall, isMobile }) => {
+const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, isOpen, t, onInstallApp, canInstall, isMobile, onTriggerExport }) => {
     
     // Default to MOTION now that SOCIAL is last
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
@@ -125,6 +126,14 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 onChange({ ...config, userImage: base64Url });
             });
         }
+    };
+
+    const handleRenderClick = () => {
+        onClose(); // Close settings
+        // Short timeout to ensure closing animation starts before triggering native popup
+        setTimeout(() => {
+            onTriggerExport();
+        }, 300);
     };
 
     // Apply transition if it is currently open OR has been opened before (to support closing animation)
@@ -203,211 +212,79 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-6 no-scrollbar overscroll-contain">
-                    
-                    {/* TAB: SOCIAL */}
+                    {/* Content Implementation ... (Same as before) */}
                     {activeTab === 'SOCIAL' && (
                         <div className="space-y-8 animate-fade-in">
                             <Section title={t.socialFeatures} icon={Users}>
                                 <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-5">
-                                    
-                                    {/* Master Switch */}
                                     <div className="pb-4 border-b border-white/5">
-                                        <ToggleRow 
-                                            label={t.enableSocial} 
-                                            description={t.enableSocialDesc}
-                                            checked={config.socialEnabled} 
-                                            onChange={(v) => onChange({...config, socialEnabled: v})} 
-                                        />
+                                        <ToggleRow label={t.enableSocial} description={t.enableSocialDesc} checked={config.socialEnabled} onChange={(v) => onChange({...config, socialEnabled: v})} />
                                     </div>
-
-                                    {/* Sub-settings (Disabled if Master is OFF) */}
                                     <div className={`space-y-5 transition-opacity duration-300 ${config.socialEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-                                        
-                                        {/* Social Handle */}
                                         <div className="space-y-3">
-                                             <div className="flex items-center gap-2 mb-2">
-                                                <AtSign size={12} className="text-neutral-500" />
-                                                <span className="text-xs font-medium text-neutral-400">{t.socialHandle}</span>
-                                            </div>
-                                            <input 
-                                                type="text" 
-                                                value={config.socialHandle}
-                                                onChange={(e) => onChange({...config, socialHandle: e.target.value})}
-                                                disabled={!config.socialEnabled}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono placeholder-neutral-700"
-                                                placeholder="@username"
-                                            />
+                                             <div className="flex items-center gap-2 mb-2"><AtSign size={12} className="text-neutral-500" /><span className="text-xs font-medium text-neutral-400">{t.socialHandle}</span></div>
+                                            <input type="text" value={config.socialHandle} onChange={(e) => onChange({...config, socialHandle: e.target.value})} disabled={!config.socialEnabled} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30 transition-all font-mono placeholder-neutral-700" placeholder="@username"/>
                                         </div>
-
-                                        {/* Profile Image */}
                                         <div className="space-y-3">
-                                             <div className="flex items-center gap-2 mb-2">
-                                                <Users size={12} className="text-neutral-500" />
-                                                <span className="text-xs font-medium text-neutral-400">{t.profileImage}</span>
-                                            </div>
+                                             <div className="flex items-center gap-2 mb-2"><Users size={12} className="text-neutral-500" /><span className="text-xs font-medium text-neutral-400">{t.profileImage}</span></div>
                                             <div className="flex items-center gap-3">
-                                                 <div className="w-10 h-10 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-                                                    {config.userImage ? (
-                                                        <img src={config.userImage} alt="Profile" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <Users size={18} className="text-neutral-600" />
-                                                    )}
-                                                 </div>
+                                                 <div className="w-10 h-10 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">{config.userImage ? (<img src={config.userImage} alt="Profile" className="w-full h-full object-cover" />) : (<Users size={18} className="text-neutral-600" />)}</div>
                                                  <div className="flex-1 space-y-1">
                                                     <div className="relative group">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="image/*"
-                                                            onChange={handleImageUpload}
-                                                            disabled={!config.socialEnabled}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                        />
-                                                        <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-2 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all text-center">
-                                                            {t.uploadImage}
-                                                        </div>
+                                                        <input type="file" accept="image/*" onChange={handleImageUpload} disabled={!config.socialEnabled} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"/>
+                                                        <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-2 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all text-center">{t.uploadImage}</div>
                                                     </div>
-                                                    {config.userImage && (
-                                                        <button 
-                                                            onClick={() => onChange({...config, userImage: null})}
-                                                            className="text-[10px] text-red-400 hover:text-red-300 hover:underline block w-full text-right"
-                                                        >
-                                                            {t.resetImage}
-                                                        </button>
-                                                    )}
+                                                    {config.userImage && (<button onClick={() => onChange({...config, userImage: null})} className="text-[10px] text-red-400 hover:text-red-300 hover:underline block w-full text-right">{t.resetImage}</button>)}
                                                  </div>
                                             </div>
                                         </div>
-
                                         <div className="h-px bg-white/5 w-full" />
-
-                                        {/* Toggles */}
-                                        <ToggleRow 
-                                            label={t.showSocialOverlay}
-                                            checked={config.showSocialOverlay} 
-                                            onChange={(v) => onChange({...config, showSocialOverlay: v})}
-                                            disabled={!config.socialEnabled}
-                                        />
-                                        
-                                        <ToggleRow 
-                                            label={t.showMusicOverlay}
-                                            checked={config.showMusicOverlay} 
-                                            onChange={(v) => onChange({...config, showMusicOverlay: v})}
-                                            disabled={!config.socialEnabled}
-                                        />
-
+                                        <ToggleRow label={t.showSocialOverlay} checked={config.showSocialOverlay} onChange={(v) => onChange({...config, showSocialOverlay: v})} disabled={!config.socialEnabled}/>
+                                        <ToggleRow label={t.showMusicOverlay} checked={config.showMusicOverlay} onChange={(v) => onChange({...config, showMusicOverlay: v})} disabled={!config.socialEnabled}/>
                                         <div className="h-px bg-white/5 w-full" />
-
-                                        {/* Music Settings */}
                                         <div className="space-y-4">
-                                            <div className="flex items-center gap-2 text-neutral-400">
-                                                <Music size={12} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">{t.audio}</span>
-                                            </div>
-
-                                            <ToggleRow 
-                                                label={t.enableMusic} 
-                                                checked={config.musicEnabled} 
-                                                onChange={(v) => onChange({...config, musicEnabled: v})}
-                                                disabled={!config.socialEnabled}
-                                            />
-                                            
+                                            <div className="flex items-center gap-2 text-neutral-400"><Music size={12} /><span className="text-xs font-bold uppercase tracking-widest">{t.audio}</span></div>
+                                            <ToggleRow label={t.enableMusic} checked={config.musicEnabled} onChange={(v) => onChange({...config, musicEnabled: v})} disabled={!config.socialEnabled}/>
                                             <div className={`transition-all duration-300 overflow-hidden ${config.musicEnabled && config.socialEnabled ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
                                                 <div className="space-y-3">
                                                     <div className="relative group">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="audio/*"
-                                                            onChange={handleFileUpload}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                        />
-                                                        <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-3 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all truncate flex items-center gap-2">
-                                                            <Upload size={12} className="shrink-0" />
-                                                            {config.customAudioName || t.uploadPlaceholder}
-                                                        </div>
+                                                        <input type="file" accept="audio/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"/>
+                                                        <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-3 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all truncate flex items-center gap-2"><Upload size={12} className="shrink-0" />{config.customAudioName || t.uploadPlaceholder}</div>
                                                     </div>
-                                                    {config.customAudioUrl && (
-                                                        <button 
-                                                            onClick={() => onChange({...config, customAudioUrl: null, customAudioName: null})}
-                                                            className="text-[10px] text-red-400 hover:text-red-300 hover:underline"
-                                                        >
-                                                            {t.resetAudio}
-                                                        </button>
-                                                    )}
+                                                    {config.customAudioUrl && (<button onClick={() => onChange({...config, customAudioUrl: null, customAudioName: null})} className="text-[10px] text-red-400 hover:text-red-300 hover:underline">{t.resetAudio}</button>)}
                                                 </div>
                                             </div>
                                         </div>
-
                                     </div>
                                 </div>
                             </Section>
                         </div>
                     )}
                     
-                    {/* TAB: MOTION (Camera, Intro, Duration) */}
                     {activeTab === 'MOTION' && (
                         <div className="space-y-8 animate-fade-in">
                             <Section title={t.cameraMotion} icon={Video}>
                                 <div className="grid grid-cols-2 gap-2">
                                     {animationOptions.map((opt) => (
-                                        <button
-                                            key={opt.id}
-                                            onClick={() => onChange({...config, animationType: opt.id})}
-                                            className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] ${
-                                                config.animationType === opt.id
-                                                    ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10'
-                                                    : 'bg-black/20 border-white/5 text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-2 w-full">
-                                                <opt.icon size={14} className={config.animationType === opt.id ? 'text-black' : 'text-neutral-500'} />
-                                                <span className="text-xs font-bold">{opt.label}</span>
-                                            </div>
+                                        <button key={opt.id} onClick={() => onChange({...config, animationType: opt.id})} className={`flex flex-col items-start gap-1 p-3 rounded-lg border transition-all duration-200 text-left active:scale-[0.98] ${config.animationType === opt.id ? 'bg-white text-black border-white shadow-lg scale-[1.02] z-10' : 'bg-black/20 border-white/5 text-neutral-400 hover:bg-white/5 hover:border-white/20 hover:text-white'}`}>
+                                            <div className="flex items-center gap-2 w-full"><opt.icon size={14} className={config.animationType === opt.id ? 'text-black' : 'text-neutral-500'} /><span className="text-xs font-bold">{opt.label}</span></div>
                                             <span className={`text-[9px] leading-tight mt-0.5 ${config.animationType === opt.id ? 'text-black/60' : 'text-neutral-600'}`}>{opt.desc}</span>
                                         </button>
                                     ))}
                                 </div>
-
                                 <div className="space-y-4 pt-4 px-1">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs font-medium text-neutral-300">{t.flightDuration}</span>
-                                        <span className="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-white min-w-[3rem] text-center border border-white/5">{config.duration}s</span>
-                                    </div>
-                                    <div className="relative w-full h-6 flex items-center">
-                                        <input 
-                                            type="range" min="10" max="120" step="5"
-                                            value={config.duration}
-                                            onChange={(e) => onChange({...config, duration: parseInt(e.target.value)})}
-                                            className="w-full cursor-pointer"
-                                        />
-                                    </div>
+                                    <div className="flex justify-between items-center"><span className="text-xs font-medium text-neutral-300">{t.flightDuration}</span><span className="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-white min-w-[3rem] text-center border border-white/5">{config.duration}s</span></div>
+                                    <div className="relative w-full h-6 flex items-center"><input type="range" min="10" max="120" step="5" value={config.duration} onChange={(e) => onChange({...config, duration: parseInt(e.target.value)})} className="w-full cursor-pointer"/></div>
                                 </div>
                             </Section>
-
                             <Section title={t.presentation} icon={Layers}>
                                 <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-5">
-                                    {/* Intro */}
                                     <div className="space-y-4">
-                                        <ToggleRow 
-                                            label={t.introSequence} 
-                                            description={t.introDescription}
-                                            checked={config.showIntro} 
-                                            onChange={(v) => onChange({...config, showIntro: v})} 
-                                        />
-                                        
+                                        <ToggleRow label={t.introSequence} description={t.introDescription} checked={config.showIntro} onChange={(v) => onChange({...config, showIntro: v})} />
                                         <div className={`transition-all duration-300 overflow-hidden ease-in-out ${config.showIntro ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
                                             <div className="bg-black/40 rounded-lg p-1 flex border border-white/5">
                                                 {['SLOW', 'NORMAL', 'FAST'].map((speed) => (
-                                                    <button
-                                                        key={speed}
-                                                        onClick={() => onChange({...config, introSpeed: speed as any})}
-                                                        className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                                                            config.introSpeed === speed 
-                                                            ? 'bg-white text-black shadow-sm' 
-                                                            : 'text-neutral-500 hover:text-white hover:bg-white/5'
-                                                        }`}
-                                                    >
-                                                        {speed === 'SLOW' ? t.speeds.slow : speed === 'FAST' ? t.speeds.fast : t.speeds.normal}
-                                                    </button>
+                                                    <button key={speed} onClick={() => onChange({...config, introSpeed: speed as any})} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${config.introSpeed === speed ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}>{speed === 'SLOW' ? t.speeds.slow : speed === 'FAST' ? t.speeds.fast : t.speeds.normal}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -417,93 +294,38 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                         </div>
                     )}
 
-                    {/* TAB: STYLE (Map, Color, Brightness, Stats) */}
                     {activeTab === 'STYLE' && (
                         <div className="space-y-8 animate-fade-in">
                              <Section title={t.mapStyle} icon={Palette}>
                                 <div className="bg-neutral-800/30 rounded-xl border border-white/5 p-4 space-y-6">
-                                    <ToggleRow 
-                                        label={t.showMapTiles} 
-                                        checked={config.showMap} 
-                                        onChange={(v) => onChange({...config, showMap: v})} 
-                                    />
-
-                                    {/* Filters - Only visible if map is on */}
+                                    <ToggleRow label={t.showMapTiles} checked={config.showMap} onChange={(v) => onChange({...config, showMap: v})} />
                                     <div className={`space-y-5 transition-all duration-500 ease-in-out ${config.showMap ? 'opacity-100 max-h-96' : 'opacity-30 max-h-0 overflow-hidden'}`}>
                                         <div className="space-y-3">
-                                            <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
-                                                <span>{t.brightness}</span>
-                                                <span>{(config.brightness * 100).toFixed(0)}%</span>
-                                            </div>
-                                            <div className="relative w-full h-6 flex items-center">
-                                                <input 
-                                                    type="range" min="0.5" max="2.0" step="0.1"
-                                                    value={config.brightness}
-                                                    onChange={(e) => onChange({...config, brightness: parseFloat(e.target.value)})}
-                                                    className="w-full cursor-pointer"
-                                                />
-                                            </div>
+                                            <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-wider"><span>{t.brightness}</span><span>{(config.brightness * 100).toFixed(0)}%</span></div>
+                                            <div className="relative w-full h-6 flex items-center"><input type="range" min="0.5" max="2.0" step="0.1" value={config.brightness} onChange={(e) => onChange({...config, brightness: parseFloat(e.target.value)})} className="w-full cursor-pointer"/></div>
                                         </div>
-                                        
                                         <div className="space-y-3">
-                                            <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
-                                                <span>{t.contrast}</span>
-                                                <span>{(config.contrast * 100).toFixed(0)}%</span>
-                                            </div>
-                                            <div className="relative w-full h-6 flex items-center">
-                                                <input 
-                                                    type="range" min="0.5" max="2.0" step="0.1"
-                                                    value={config.contrast}
-                                                    onChange={(e) => onChange({...config, contrast: parseFloat(e.target.value)})}
-                                                    className="w-full cursor-pointer"
-                                                />
-                                            </div>
+                                            <div className="flex justify-between text-[10px] text-neutral-400 font-bold uppercase tracking-wider"><span>{t.contrast}</span><span>{(config.contrast * 100).toFixed(0)}%</span></div>
+                                            <div className="relative w-full h-6 flex items-center"><input type="range" min="0.5" max="2.0" step="0.1" value={config.contrast} onChange={(e) => onChange({...config, contrast: parseFloat(e.target.value)})} className="w-full cursor-pointer"/></div>
                                         </div>
                                     </div>
-
                                     <div className="h-px bg-white/5 w-full" />
-
-                                    {/* Route Style */}
                                     <div className="space-y-3">
-                                        <div className="flex justify-between text-xs font-medium text-neutral-300">
-                                            <span>{t.routeWidth}</span>
-                                            <span className="text-white/60">{config.lineWidth}px</span>
-                                        </div>
-                                        <div className="relative w-full h-6 flex items-center">
-                                            <input 
-                                                type="range" min="1" max="10" step="1"
-                                                value={config.lineWidth}
-                                                onChange={(e) => onChange({...config, lineWidth: parseInt(e.target.value)})}
-                                                className="w-full cursor-pointer"
-                                            />
-                                        </div>
+                                        <div className="flex justify-between text-xs font-medium text-neutral-300"><span>{t.routeWidth}</span><span className="text-white/60">{config.lineWidth}px</span></div>
+                                        <div className="relative w-full h-6 flex items-center"><input type="range" min="1" max="10" step="1" value={config.lineWidth} onChange={(e) => onChange({...config, lineWidth: parseInt(e.target.value)})} className="w-full cursor-pointer"/></div>
                                     </div>
-
                                     <div className="space-y-3">
                                         <span className="text-xs font-medium text-neutral-300">{t.routeColor}</span>
                                         <div className="flex gap-3">
                                             {COLOR_OPTIONS.map(color => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => onChange({...config, lineColor: color})}
-                                                    className={`w-9 h-9 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${config.lineColor === color ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-transparent hover:border-white/30 hover:scale-105'}`}
-                                                    style={{ backgroundColor: color }}
-                                                >
+                                                <button key={color} onClick={() => onChange({...config, lineColor: color})} className={`w-9 h-9 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${config.lineColor === color ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-transparent hover:border-white/30 hover:scale-105'}`} style={{ backgroundColor: color }}>
                                                     {config.lineColor === color && <Check size={16} className="text-black/60" />}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-
                                      <div className="h-px bg-white/5 w-full" />
-
-                                    {/* Stats */}
-                                    <ToggleRow 
-                                        label={t.statsOverlay} 
-                                        description={t.statsDescription}
-                                        checked={config.showStats} 
-                                        onChange={(v) => onChange({...config, showStats: v})} 
-                                    />
+                                    <ToggleRow label={t.statsOverlay} description={t.statsDescription} checked={config.showStats} onChange={(v) => onChange({...config, showStats: v})} />
                                 </div>
                             </Section>
                         </div>
@@ -513,34 +335,24 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 {/* Footer */}
                 <div className="p-5 border-t border-white/10 bg-neutral-900/95 backdrop-blur-md shrink-0 pb-safe z-10">
                     
-                    {/* Install App Section - Only shows if supported, not installed, AND user is on mobile */}
+                    {/* Render Video Button */}
+                    <button 
+                        onClick={handleRenderClick}
+                        className="w-full py-3 mb-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-black bg-white hover:bg-neutral-200 rounded-lg transition-all shadow-lg active:scale-[0.98]"
+                    >
+                        <Video size={14} />
+                        {t.exportVideo}
+                    </button>
+
                     {canInstall && isMobile && (
-                        <div className="mb-4 w-full">
-                            <div className="mb-2.5 px-1 w-full flex items-center justify-center gap-2 text-yellow-400 animate-pulse">
-                                <Sparkles size={12} />
-                                <span className="text-[10px] uppercase tracking-widest font-bold text-center">{t.installNote}</span>
-                            </div>
-                            <button
-                                onClick={onInstallApp}
-                                className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-black bg-white hover:bg-neutral-200 rounded-lg transition-all shadow-lg active:scale-[0.98]"
-                            >
+                        <div className="mb-3 w-full">
+                            <button onClick={onInstallApp} className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-300 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-all border border-white/5">
                                 <Download size={14} />
                                 {t.installApp}
                             </button>
                         </div>
                     )}
                     
-                    {/* Desktop install button fallback (optional, less prominent if mobile note is desired emphasis) */}
-                    {canInstall && !isMobile && (
-                        <button
-                            onClick={onInstallApp}
-                            className="w-full py-3 mb-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-black bg-white hover:bg-neutral-200 rounded-lg transition-all shadow-lg active:scale-[0.98]"
-                        >
-                            <Download size={14} />
-                            {t.installApp}
-                        </button>
-                    )}
-
                     <button 
                         onClick={onReset}
                         className="w-full py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-all border border-transparent hover:border-white/10 active:scale-[0.98]"
