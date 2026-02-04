@@ -18,6 +18,8 @@ export interface Translation {
         errorCalculation: string;
         noLocationsFound: string;
         tryDifferentSearch: string;
+        shareRoute: string;
+        linkCopied: string;
     };
     settings: {
         title: string;
@@ -98,7 +100,9 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Select start and end points.",
       errorCalculation: "Could not calculate a route between these points. Please try different locations.",
       noLocationsFound: "No locations found",
-      tryDifferentSearch: "Try a different search term"
+      tryDifferentSearch: "Try a different search term",
+      shareRoute: "Share Route",
+      linkCopied: "Link Copied!"
     },
     settings: {
       title: "Settings",
@@ -177,7 +181,9 @@ export const translations: Record<Language, Translation> = {
       errorSelectPoints: "Selecione os pontos de partida e chegada.",
       errorCalculation: "Não foi possível calcular a rota. Tente locais diferentes.",
       noLocationsFound: "Nenhum local encontrado",
-      tryDifferentSearch: "Tente outro termo de busca"
+      tryDifferentSearch: "Tente outro termo de busca",
+      shareRoute: "Compartilhar",
+      linkCopied: "Link Copiado!"
     },
     settings: {
       title: "Configurações",

@@ -5,10 +5,11 @@
 */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, ArrowUpDown } from 'lucide-react';
-import { RouteDetails, AppState, LocationLabel, Language } from '../types';
+import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, ArrowUpDown, Share2, Check } from 'lucide-react';
+import { RouteDetails, AppState, LocationLabel, Language, PointState, MapConfig } from '../types';
 import { searchLocation, getRouteData, formatDistance, formatDuration, NominatimResult } from '../services/mapUtils';
 import { Translation } from '../services/translations';
+import { serializeStateToUrl } from '../services/urlUtils';
 
 interface Props {
   onRouteFound: (details: RouteDetails) => void;
@@ -16,13 +17,9 @@ interface Props {
   onOpenSettings: () => void;
   t: Translation['planner'];
   language: Language;
-}
-
-interface PointState {
-    name: string;
-    lat: number;
-    lon: number;
-    label: LocationLabel;
+  initialStart?: PointState;
+  initialEnd?: PointState;
+  config: MapConfig;
 }
 
 const extractLabel = (result: NominatimResult): LocationLabel => {
@@ -246,18 +243,37 @@ const LocationInput = ({
     );
 };
 
-const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings, t, language }) => {
-  const [startPoint, setStartPoint] = useState<PointState | null>(null);
-  const [endPoint, setEndPoint] = useState<PointState | null>(null);
+const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings, t, language, initialStart, initialEnd, config }) => {
+  const [startPoint, setStartPoint] = useState<PointState | null>(initialStart || null);
+  const [endPoint, setEndPoint] = useState<PointState | null>(initialEnd || null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [swapRotation, setSwapRotation] = useState(0);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // Sync state if props change (e.g. from late URL hydration)
+  useEffect(() => {
+    if (initialStart) setStartPoint(initialStart);
+    if (initialEnd) setEndPoint(initialEnd);
+  }, [initialStart, initialEnd]);
 
   const handleSwap = () => {
       setSwapRotation(prev => prev + 180);
       const temp = startPoint;
       setStartPoint(endPoint);
       setEndPoint(temp);
+  };
+
+  const handleShare = async () => {
+    if (!startPoint || !endPoint) return;
+    const url = serializeStateToUrl(startPoint, endPoint, config);
+    try {
+        await navigator.clipboard.writeText(url);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2500);
+    } catch (e) {
+        console.error("Failed to copy", e);
+    }
   };
 
   const handleCalculate = async () => {
@@ -313,7 +329,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
                     placeholder={t.startLocation}
                     onSelect={setStartPoint} 
                     disabled={isLocked}
-                    autoFocus
+                    autoFocus={!initialStart}
                     t={t}
                     defaultValue={startPoint?.name}
                 />
@@ -348,13 +364,33 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
         )}
 
         <div className="pt-2 animate-slide-in-up" style={{ animationDelay: '500ms' }}>
-            <button 
-                onClick={onOpenSettings}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900/40 border border-white/5 inner-border-highlight rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10 transition-all mb-4 group"
-            >
-                <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
-                <span className="text-[10px] font-bold uppercase tracking-widest">{t.configuration}</span>
-            </button>
+            <div className="flex gap-2 mb-4">
+                <button 
+                    onClick={onOpenSettings}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-neutral-900/40 border border-white/5 inner-border-highlight rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10 transition-all group"
+                >
+                    <Settings size={14} className="group-hover:rotate-90 transition-transform duration-500" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{t.configuration}</span>
+                </button>
+
+                {/* Share Button */}
+                {startPoint && endPoint && (
+                     <button 
+                        onClick={handleShare}
+                        disabled={isCopied}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border inner-border-highlight rounded-xl transition-all group ${
+                            isCopied 
+                            ? 'bg-green-500/20 border-green-500/30 text-green-400' 
+                            : 'bg-neutral-900/40 border-white/5 text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10'
+                        }`}
+                    >
+                        {isCopied ? <Check size={14} /> : <Share2 size={14} />}
+                        <span className="text-[10px] font-bold uppercase tracking-widest">
+                            {isCopied ? t.linkCopied : t.shareRoute}
+                        </span>
+                    </button>
+                )}
+            </div>
 
             <button
                 onClick={handleCalculate}

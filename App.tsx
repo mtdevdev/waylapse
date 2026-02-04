@@ -9,14 +9,19 @@ import { ArrowLeft } from 'lucide-react';
 import RoutePlanner from './components/RoutePlanner';
 import InlineMap from './components/InlineMap';
 import SettingsPanel from './components/SettingsPanel';
-import { AppState, RouteDetails, DEFAULT_CONFIG, MapConfig, Language } from './types';
+import { AppState, RouteDetails, DEFAULT_CONFIG, MapConfig, Language, PointState } from './types';
 import { translations } from './services/translations';
+import { parseStateFromUrl } from './services/urlUtils';
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
   const [route, setRoute] = useState<RouteDetails | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   
+  // Shared state hydrated from URL
+  const [initialStart, setInitialStart] = useState<PointState>();
+  const [initialEnd, setInitialEnd] = useState<PointState>();
+
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -52,17 +57,28 @@ function App() {
   
   // Initialize config from localStorage or fallback to default
   const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
+    let baseConfig = DEFAULT_CONFIG;
     try {
       // Changed key from flowpath_config to waylapse_config
       const saved = localStorage.getItem('waylapse_config');
       if (saved) {
-        return { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+        baseConfig = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
       }
     } catch (e) {
       console.warn('Failed to load config from storage:', e);
     }
-    return DEFAULT_CONFIG;
+    
+    // Check URL params and merge immediately to prevent flicker
+    const { configPartial } = parseStateFromUrl();
+    return { ...baseConfig, ...configPartial };
   });
+
+  // Hydrate Points from URL on Mount
+  useEffect(() => {
+    const { start, end } = parseStateFromUrl();
+    if (start) setInitialStart(start);
+    if (end) setInitialEnd(end);
+  }, []);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
@@ -164,6 +180,9 @@ function App() {
                         onOpenSettings={() => setIsSettingsOpen(true)}
                         t={t.planner}
                         language={language}
+                        initialStart={initialStart}
+                        initialEnd={initialEnd}
+                        config={mapConfig}
                     />
                 </div>
             </div>

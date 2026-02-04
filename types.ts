@@ -20,6 +20,13 @@ export interface LocationLabel {
     subtitle: string; // Specific location (UTFPR, Street, etc.)
 }
 
+export interface PointState {
+    name: string;
+    lat: number;
+    lon: number;
+    label: LocationLabel;
+}
+
 export interface RouteDetails {
   startAddress: string;
   endAddress: string;
