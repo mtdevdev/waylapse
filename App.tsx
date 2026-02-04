@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import RoutePlanner from './components/RoutePlanner';
 import InlineMap from './components/InlineMap';
@@ -12,6 +12,20 @@ import SettingsPanel from './components/SettingsPanel';
 import { AppState, RouteDetails, DEFAULT_CONFIG, MapConfig, Language, PointState } from './types';
 import { translations } from './services/translations';
 import { parseStateFromUrl } from './services/urlUtils';
+
+// Helper to load only the user's persistent config from localStorage
+const loadUserConfig = (): MapConfig => {
+    let baseConfig = DEFAULT_CONFIG;
+    try {
+        const saved = localStorage.getItem('waylapse_config');
+        if (saved) {
+            baseConfig = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.warn('Failed to load config from storage:', e);
+    }
+    return baseConfig;
+};
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.PLANNING);
@@ -21,6 +35,11 @@ function App() {
   // Shared state hydrated from URL
   const [initialStart, setInitialStart] = useState<PointState>();
   const [initialEnd, setInitialEnd] = useState<PointState>();
+
+  // Track if current session is a shared session (loaded from URL)
+  // We use a ref so we can update it immediately during init without re-renders, 
+  // but we also need it for the useEffect dependency.
+  const isSharedSessionRef = useRef(false);
 
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -55,22 +74,20 @@ function App() {
     }
   };
   
-  // Initialize config from localStorage or fallback to default
+  // Initialize config
   const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
-    let baseConfig = DEFAULT_CONFIG;
-    try {
-      // Changed key from flowpath_config to waylapse_config
-      const saved = localStorage.getItem('waylapse_config');
-      if (saved) {
-        baseConfig = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
-      }
-    } catch (e) {
-      console.warn('Failed to load config from storage:', e);
-    }
+    // Start with user's saved config
+    const userConfig = loadUserConfig();
     
-    // Check URL params and merge immediately to prevent flicker
-    const { configPartial } = parseStateFromUrl();
-    return { ...baseConfig, ...configPartial };
+    // Check URL params and merge immediately for the initial render
+    const { configPartial, start } = parseStateFromUrl();
+    
+    // If we have URL params that imply a shared route (start point or specific config), merge them
+    if (start || Object.keys(configPartial || {}).length > 0) {
+        isSharedSessionRef.current = true;
+        return { ...userConfig, ...configPartial };
+    }
+    return userConfig;
   });
 
   // Hydrate Points from URL on Mount
@@ -84,15 +101,19 @@ function App() {
   
   // Persist config changes (Excluding Audio to save space)
   useEffect(() => {
+    // CRITICAL: Do NOT save to localStorage if we are in a shared session.
+    // This prevents the viewer's personal defaults from being overwritten by the shared route's settings.
+    if (isSharedSessionRef.current) return;
+
     try {
-        // Create a copy to save, but explicitly remove large temporary audio data
-        // We DO save the userImage (Base64)
+        // Only save to localStorage if we are in PLANNING mode or if the change was explicitly made via settings
+        // However, standard behavior is usually to save what you see. 
+        // We exclude large data like audio urls if they are blobs
         const configToSave = {
             ...mapConfig,
-            customAudioUrl: null,
+            customAudioUrl: null, // Don't persist blobs or temp URLs
             customAudioName: null
         };
-        // Changed key from flowpath_config to waylapse_config
         localStorage.setItem('waylapse_config', JSON.stringify(configToSave));
     } catch (e) {
         console.warn('Failed to save config to storage:', e);
@@ -117,6 +138,20 @@ function App() {
   const handleReset = () => {
       setAppState(AppState.PLANNING);
       setRoute(null);
+      
+      // Clear shared session flag
+      isSharedSessionRef.current = false;
+
+      // Remove URL parameters (Clear shared state)
+      window.history.pushState({}, '', window.location.pathname);
+      
+      // Revert to user's saved config (ignoring the shared params that were previously merged)
+      const userConfig = loadUserConfig();
+      setMapConfig(userConfig);
+      
+      // Clear hydration points so the planner is empty for a fresh start
+      setInitialStart(undefined);
+      setInitialEnd(undefined);
   };
 
   return (

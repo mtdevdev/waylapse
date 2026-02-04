@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, ArrowUpDown, Share2, Check } from 'lucide-react';
+import { MapPin, Navigation, Loader2, PlayCircle, X, AlertCircle, Settings, ArrowUpDown, Share2, Check, Copy, User, Music } from 'lucide-react';
 import { RouteDetails, AppState, LocationLabel, Language, PointState, MapConfig } from '../types';
 import { searchLocation, getRouteData, formatDistance, formatDuration, NominatimResult } from '../services/mapUtils';
 import { Translation } from '../services/translations';
@@ -249,7 +249,14 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [swapRotation, setSwapRotation] = useState(0);
+  
+  // Share Menu State
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [shareOptions, setShareOptions] = useState({
+      includeSocial: true,
+      includeMusic: true
+  });
   
   // Track auto-start execution
   const hasAutoStarted = useRef(false);
@@ -304,13 +311,16 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
       setEndPoint(temp);
   };
 
-  const handleShare = async () => {
+  const handleCopyLink = async () => {
     if (!startPoint || !endPoint) return;
-    const url = serializeStateToUrl(startPoint, endPoint, config);
+    const url = serializeStateToUrl(startPoint, endPoint, config, shareOptions);
     try {
         await navigator.clipboard.writeText(url);
         setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2500);
+        setTimeout(() => {
+            setIsCopied(false);
+            setIsShareOpen(false); // Close modal after copy
+        }, 1500);
     } catch (e) {
         console.error("Failed to copy", e);
     }
@@ -327,8 +337,60 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
   const isLocked = appState === AppState.VISUALIZING;
 
   return (
-    <div className={`transition-all duration-700 w-full max-w-md mx-auto flex flex-col ${isLocked ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
-      <div className="space-y-4 md:space-y-6 flex-1">
+    <>
+        {/* Share Modal - Fixed Position for Full Screen Coverage */}
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${isShareOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity duration-300" onClick={() => setIsShareOpen(false)}></div>
+            <div className={`w-full max-w-[340px] bg-neutral-900 border border-white/10 rounded-2xl p-5 shadow-2xl relative inner-border-highlight transition-all duration-300 cubic-bezier(0.2, 0.8, 0.2, 1) ${isShareOpen ? 'scale-100 translate-y-0 opacity-100' : 'scale-95 translate-y-4 opacity-0'}`}>
+                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
+                    <div>
+                        <h3 className="text-sm font-bold text-white uppercase tracking-widest">{t.shareTitle}</h3>
+                        <p className="text-[10px] text-neutral-400 mt-0.5">{t.shareDesc}</p>
+                    </div>
+                    <button onClick={() => setIsShareOpen(false)} className="p-1.5 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition-colors">
+                        <X size={16} />
+                    </button>
+                </div>
+                
+                <div className="space-y-3 mb-6">
+                    <div 
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${shareOptions.includeSocial ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 opacity-60'}`}
+                        onClick={() => setShareOptions(prev => ({...prev, includeSocial: !prev.includeSocial}))}
+                    >
+                        <div className={`p-2 rounded-full ${shareOptions.includeSocial ? 'bg-white text-black' : 'bg-neutral-800 text-neutral-500'}`}>
+                            <User size={14} />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-white">{t.includeSocial}</div>
+                            <div className="text-[10px] text-neutral-400 leading-tight mt-0.5">{t.includeSocialDesc}</div>
+                        </div>
+                    </div>
+
+                    <div 
+                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${shareOptions.includeMusic ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 opacity-60'}`}
+                        onClick={() => setShareOptions(prev => ({...prev, includeMusic: !prev.includeMusic}))}
+                    >
+                            <div className={`p-2 rounded-full ${shareOptions.includeMusic ? 'bg-white text-black' : 'bg-neutral-800 text-neutral-500'}`}>
+                            <Music size={14} />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-white">{t.includeMusic}</div>
+                            <div className="text-[10px] text-neutral-400 leading-tight mt-0.5">{t.includeMusicDesc}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button 
+                    onClick={handleCopyLink}
+                    className="w-full h-11 bg-white text-black rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-neutral-200 transition-all flex items-center justify-center gap-2 active:scale-95"
+                >
+                    {isCopied ? <Check size={16} /> : <Copy size={16} />}
+                    {isCopied ? t.linkCopied : t.copyLink}
+                </button>
+            </div>
+        </div>
+
+        <div className={`transition-all duration-700 w-full max-w-md mx-auto flex flex-col ${isLocked ? 'opacity-0 pointer-events-none translate-y-10' : 'opacity-100 translate-y-0'}`}>
         
         <div className="relative animate-slide-in-up isolate" style={{ animationDelay: '300ms' }}>
             {/* Visual Connector Line (Left) */}
@@ -371,7 +433,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
         </div>
 
         {error && (
-          <p className="text-red-400 text-xs text-center font-mono bg-red-500/10 p-2 rounded border border-red-500/20 animate-fade-in">{error}</p>
+            <p className="text-red-400 text-xs text-center font-mono bg-red-500/10 p-2 rounded border border-red-500/20 animate-fade-in">{error}</p>
         )}
 
         <div className="pt-2 animate-slide-in-up" style={{ animationDelay: '500ms' }}>
@@ -384,23 +446,21 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
                     <span className="text-[10px] font-bold uppercase tracking-widest">{t.configuration}</span>
                 </button>
 
-                {/* Share Button */}
-                {startPoint && endPoint && (
-                     <button 
-                        onClick={handleShare}
-                        disabled={isCopied}
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border inner-border-highlight rounded-xl transition-all group ${
-                            isCopied 
-                            ? 'bg-green-500/20 border-green-500/30 text-green-400' 
-                            : 'bg-neutral-900/40 border-white/5 text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10'
-                        }`}
-                    >
-                        {isCopied ? <Check size={14} /> : <Share2 size={14} />}
-                        <span className="text-[10px] font-bold uppercase tracking-widest">
-                            {isCopied ? t.linkCopied : t.shareRoute}
-                        </span>
-                    </button>
-                )}
+                {/* Share Button (Always Visible, Disabled state handled via CSS/Prop) */}
+                <button 
+                    onClick={() => setIsShareOpen(true)}
+                    disabled={!startPoint || !endPoint}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border inner-border-highlight rounded-xl transition-all group ${
+                        !startPoint || !endPoint
+                        ? 'bg-neutral-900/20 border-white/5 text-neutral-600 cursor-not-allowed'
+                        : 'bg-neutral-900/40 border-white/5 text-neutral-400 hover:text-white hover:bg-neutral-900/60 hover:border-white/10'
+                    }`}
+                >
+                    <Share2 size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                        {t.shareRoute}
+                    </span>
+                </button>
             </div>
 
             <button
@@ -419,7 +479,7 @@ const RoutePlanner: React.FC<Props> = ({ onRouteFound, appState, onOpenSettings,
             </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

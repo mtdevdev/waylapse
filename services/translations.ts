@@ -20,6 +20,14 @@ export interface Translation {
         tryDifferentSearch: string;
         shareRoute: string;
         linkCopied: string;
+        shareTitle: string;
+        shareDesc: string;
+        includeSocial: string;
+        includeSocialDesc: string;
+        includeMusic: string;
+        includeMusicDesc: string;
+        copyLink: string;
+        cancel: string;
     };
     settings: {
         title: string;
@@ -55,6 +63,14 @@ export interface Translation {
         enableMusic: string;
         uploadMusic: string;
         uploadPlaceholder: string;
+        searchPlaceholder: string;
+        searchBtn: string;
+        searching: string;
+        noResults: string;
+        localFile: string;
+        searchTrack: string;
+        shareable: string;
+        localOnly: string;
         showMusicOverlay: string;
         showSocialOverlay: string;
         installApp: string;
@@ -101,8 +117,16 @@ export const translations: Record<Language, Translation> = {
       errorCalculation: "Could not calculate a route between these points. Please try different locations.",
       noLocationsFound: "No locations found",
       tryDifferentSearch: "Try a different search term",
-      shareRoute: "Share Route",
-      linkCopied: "Link Copied!"
+      shareRoute: "Share",
+      linkCopied: "Link Copied!",
+      shareTitle: "Share Journey",
+      shareDesc: "Customize what is included in the shared link.",
+      includeSocial: "Social Identity",
+      includeSocialDesc: "Include your username and profile picture",
+      includeMusic: "Music Info",
+      includeMusicDesc: "Include track name (audio file is not shared)",
+      copyLink: "Copy Link",
+      cancel: "Cancel"
     },
     settings: {
       title: "Settings",
@@ -138,6 +162,14 @@ export const translations: Record<Language, Translation> = {
       enableMusic: "Background Music",
       uploadMusic: "Upload Track",
       uploadPlaceholder: "Choose audio file...",
+      searchPlaceholder: "Search song or artist...",
+      searchBtn: "Search",
+      searching: "Searching...",
+      noResults: "No tracks found",
+      localFile: "Local File",
+      searchTrack: "Search Track",
+      shareable: "Shareable",
+      localOnly: "Local Only",
       showMusicOverlay: "Show Music Ticker",
       showSocialOverlay: "Show Username Tag",
       installApp: "Install App",
@@ -183,7 +215,15 @@ export const translations: Record<Language, Translation> = {
       noLocationsFound: "Nenhum local encontrado",
       tryDifferentSearch: "Tente outro termo de busca",
       shareRoute: "Compartilhar",
-      linkCopied: "Link Copiado!"
+      linkCopied: "Link Copiado!",
+      shareTitle: "Compartilhar Rota",
+      shareDesc: "Personalize o que será incluído no link.",
+      includeSocial: "Identidade Social",
+      includeSocialDesc: "Incluir nome de usuário e foto de perfil",
+      includeMusic: "Informações de Música",
+      includeMusicDesc: "Incluir nome da faixa (arquivo não é compartilhado)",
+      copyLink: "Copiar Link",
+      cancel: "Cancelar"
     },
     settings: {
       title: "Configurações",
@@ -219,6 +259,14 @@ export const translations: Record<Language, Translation> = {
       enableMusic: "Música de Fundo",
       uploadMusic: "Carregar Faixa",
       uploadPlaceholder: "Escolher arquivo...",
+      searchPlaceholder: "Buscar música ou artista...",
+      searchBtn: "Buscar",
+      searching: "Buscando...",
+      noResults: "Nenhuma faixa encontrada",
+      localFile: "Arquivo Local",
+      searchTrack: "Buscar Faixa",
+      shareable: "Compartilhável",
+      localOnly: "Apenas Local",
       showMusicOverlay: "Mostrar Faixa de Música",
       showSocialOverlay: "Mostrar Tag de Usuário",
       installApp: "Instalar App",
@@ -238,7 +286,7 @@ export const translations: Record<Language, Translation> = {
       }
     },
     map: {
-      origin: "Origem",
+      origin: "Origin",
       arrival: "Chegada",
       time: "Tempo",
       distance: "Distância",

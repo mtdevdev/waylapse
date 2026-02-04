@@ -5,7 +5,7 @@
 */
 
 import React, { useState, useEffect } from 'react';
-import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles } from 'lucide-react';
+import { X, RotateCw, Check, Zap, Target, Plane, ZoomOut, ZoomIn, Map, Video, Palette, Sliders, Layers, AtSign, Music, Upload, Users, Download, Sparkles, Search, Globe, FileAudio, Loader2, Play, Pause } from 'lucide-react';
 import { MapConfig, COLOR_OPTIONS, AnimationType } from '../types';
 import { Translation } from '../services/translations';
 
@@ -19,6 +19,14 @@ interface Props {
     onInstallApp: () => void;
     canInstall: boolean;
     isMobile: boolean;
+}
+
+interface ITunesTrack {
+    trackId: number;
+    trackName: string;
+    artistName: string;
+    previewUrl: string;
+    artworkUrl100: string;
 }
 
 // Extracted components to prevent re-mounting on parent render
@@ -64,19 +72,45 @@ const ToggleRow = ({ label, checked, onChange, description, disabled = false }: 
 );
 
 type SettingsTab = 'MOTION' | 'STYLE' | 'SOCIAL';
+type AudioMode = 'SEARCH' | 'FILE';
 
 const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, isOpen, t, onInstallApp, canInstall, isMobile }) => {
     
-    // Default to MOTION now that SOCIAL is last
     const [activeTab, setActiveTab] = useState<SettingsTab>('MOTION');
-    // Track if panel has been opened at least once to enable transitions for closing
     const [hasOpened, setHasOpened] = useState(false);
+    
+    // Audio State
+    const [audioMode, setAudioMode] = useState<AudioMode>('SEARCH');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchResults, setSearchResults] = useState<ITunesTrack[]>([]);
+    const [previewTrackId, setPreviewTrackId] = useState<number | null>(null);
+    const [previewAudio, setPreviewAudio] = useState<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         if (isOpen && !hasOpened) {
             setHasOpened(true);
         }
     }, [isOpen, hasOpened]);
+
+    // Check existing config to set mode
+    useEffect(() => {
+        if (config.customAudioUrl && !config.customAudioUrl.startsWith('http')) {
+            // Blob URL -> File Mode
+            setAudioMode('FILE');
+        } else {
+            // Http URL or Empty -> Search Mode (Default)
+            setAudioMode('SEARCH');
+        }
+    }, [isOpen]); // Reset when opening
+
+    // Stop preview on close
+    useEffect(() => {
+        if (!isOpen && previewAudio) {
+            previewAudio.pause();
+            setPreviewTrackId(null);
+        }
+    }, [isOpen, previewAudio]);
 
     const animationOptions: { id: AnimationType; label: string; icon: any; desc: string }[] = [
         { id: 'CINEMATIC', label: t.animations.cinematic.label, icon: Zap, desc: t.animations.cinematic.desc },
@@ -87,7 +121,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
         { id: 'OVERVIEW', label: t.animations.static.label, icon: Map, desc: t.animations.static.desc },
     ];
 
-    // Helper for images (Base64 for persistence)
     const fileToBase64 = (file: File, callback: (result: string) => void) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -96,17 +129,12 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 callback(reader.result);
             }
         };
-        reader.onerror = (error) => {
-            console.error('Error converting file to base64:', error);
-        };
     };
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // For Audio: Use Object URL for performance (Session only, not saved to localStorage)
             const url = URL.createObjectURL(file);
-            // Remove file extension for cleaner display
             const cleanName = file.name.replace(/\.[^/.]+$/, "");
             onChange({ 
                 ...config, 
@@ -120,15 +148,69 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // For Image: Use Base64 so it can be persisted in localStorage
             fileToBase64(file, (base64Url) => {
                 onChange({ ...config, userImage: base64Url });
             });
         }
     };
 
-    // Apply transition if it is currently open OR has been opened before (to support closing animation)
-    // checking isOpen here ensures the entry animation plays on the very first open
+    const searchMusic = async () => {
+        if (!searchQuery.trim()) return;
+        setIsSearching(true);
+        setSearchResults([]);
+        
+        try {
+            // Use iTunes Search API
+            const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(searchQuery)}&media=music&entity=song&limit=4`);
+            const data = await response.json();
+            
+            if (data.results) {
+                setSearchResults(data.results.map((item: any) => ({
+                    trackId: item.trackId,
+                    trackName: item.trackName,
+                    artistName: item.artistName,
+                    previewUrl: item.previewUrl,
+                    artworkUrl100: item.artworkUrl100
+                })));
+            }
+        } catch (e) {
+            console.error("Music search failed", e);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const togglePreview = (track: ITunesTrack) => {
+        if (previewTrackId === track.trackId && previewAudio) {
+            previewAudio.pause();
+            setPreviewTrackId(null);
+            return;
+        }
+
+        if (previewAudio) {
+            previewAudio.pause();
+        }
+
+        const audio = new Audio(track.previewUrl);
+        audio.volume = 0.5;
+        audio.play();
+        audio.onended = () => setPreviewTrackId(null);
+        setPreviewAudio(audio);
+        setPreviewTrackId(track.trackId);
+    };
+
+    const selectTrack = (track: ITunesTrack) => {
+        if (previewAudio) previewAudio.pause();
+        setPreviewTrackId(null);
+        
+        onChange({
+            ...config,
+            customAudioUrl: track.previewUrl,
+            customAudioName: `${track.trackName} - ${track.artistName}`,
+            musicEnabled: true
+        });
+    };
+
     const shouldAnimate = isOpen || hasOpened;
     const transitionClass = shouldAnimate ? 'transition-all duration-500' : '';
 
@@ -138,7 +220,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 isOpen ? 'pointer-events-auto visible' : 'pointer-events-none invisible delay-200'
             }`}
         >
-            {/* Backdrop */}
             <div 
                 className={`absolute inset-0 bg-black/60 backdrop-blur-sm ease-out ${transitionClass} ${
                     isOpen ? 'opacity-100' : 'opacity-0'
@@ -146,7 +227,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                 onClick={onClose}
             />
             
-            {/* Panel */}
             <div 
                 className={`
                     relative w-full h-[100dvh] md:w-[500px] md:h-auto md:max-h-[85vh] 
@@ -158,7 +238,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     }
                 `}
             >
-                
                 {/* Header */}
                 <div className="flex flex-col bg-neutral-900/95 backdrop-blur-xl shrink-0 z-10 border-b border-white/5">
                     <div className="flex items-center justify-between p-5 pb-4">
@@ -179,7 +258,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                         </button>
                     </div>
 
-                    {/* Tabs */}
                     <div className="flex px-5 pb-0 gap-6">
                         {[
                             { id: 'MOTION', label: t.tabs.motion },
@@ -201,7 +279,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                     </div>
                 </div>
                 
-                {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-6 no-scrollbar overscroll-contain">
                     
                     {/* TAB: SOCIAL */}
@@ -210,7 +287,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                             <Section title={t.socialFeatures} icon={Users}>
                                 <div className="bg-neutral-800/30 rounded-xl border border-white/5 inner-border-highlight p-4 space-y-5">
                                     
-                                    {/* Master Switch */}
                                     <div className="pb-4 border-b border-white/5">
                                         <ToggleRow 
                                             label={t.enableSocial} 
@@ -220,10 +296,8 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                         />
                                     </div>
 
-                                    {/* Sub-settings (Disabled if Master is OFF) */}
                                     <div className={`space-y-5 transition-opacity duration-300 ${config.socialEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
                                         
-                                        {/* Social Handle */}
                                         <div className="space-y-3">
                                              <div className="flex items-center gap-2 mb-2">
                                                 <AtSign size={12} className="text-neutral-500" />
@@ -239,7 +313,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                             />
                                         </div>
 
-                                        {/* Profile Image */}
                                         <div className="space-y-3">
                                              <div className="flex items-center gap-2 mb-2">
                                                 <Users size={12} className="text-neutral-500" />
@@ -280,7 +353,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
 
                                         <div className="h-px bg-white/5 w-full" />
 
-                                        {/* Toggles */}
                                         <ToggleRow 
                                             label={t.showSocialOverlay}
                                             checked={config.showSocialOverlay} 
@@ -299,9 +371,11 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
 
                                         {/* Music Settings */}
                                         <div className="space-y-4">
-                                            <div className="flex items-center gap-2 text-neutral-400">
-                                                <Music size={12} />
-                                                <span className="text-xs font-bold uppercase tracking-widest">{t.audio}</span>
+                                            <div className="flex items-center justify-between text-neutral-400">
+                                                <div className="flex items-center gap-2">
+                                                    <Music size={12} />
+                                                    <span className="text-xs font-bold uppercase tracking-widest">{t.audio}</span>
+                                                </div>
                                             </div>
 
                                             <ToggleRow 
@@ -311,27 +385,111 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                 disabled={!config.socialEnabled}
                                             />
                                             
-                                            <div className={`transition-all duration-300 overflow-hidden ${config.musicEnabled && config.socialEnabled ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                                <div className="space-y-3">
-                                                    <div className="relative group">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="audio/*"
-                                                            onChange={handleFileUpload}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                        />
-                                                        <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-3 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all truncate flex items-center gap-2">
-                                                            <Upload size={12} className="shrink-0" />
-                                                            {config.customAudioName || t.uploadPlaceholder}
-                                                        </div>
-                                                    </div>
-                                                    {config.customAudioUrl && (
+                                            <div className={`transition-all duration-300 overflow-hidden ${config.musicEnabled && config.socialEnabled ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                                <div className="space-y-4 pt-2">
+                                                    {/* Mode Selector */}
+                                                    <div className="flex bg-black/40 p-1 rounded-lg border border-white/5">
                                                         <button 
-                                                            onClick={() => onChange({...config, customAudioUrl: null, customAudioName: null})}
-                                                            className="text-[10px] text-red-400 hover:text-red-300 hover:underline"
+                                                            onClick={() => setAudioMode('SEARCH')}
+                                                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${audioMode === 'SEARCH' ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
                                                         >
-                                                            {t.resetAudio}
+                                                            <Search size={12} />
+                                                            {t.searchTrack}
                                                         </button>
+                                                        <button 
+                                                            onClick={() => setAudioMode('FILE')}
+                                                            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${audioMode === 'FILE' ? 'bg-white text-black shadow-sm' : 'text-neutral-500 hover:text-white hover:bg-white/5'}`}
+                                                        >
+                                                            <FileAudio size={12} />
+                                                            {t.localFile}
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Mode Content */}
+                                                    {audioMode === 'SEARCH' ? (
+                                                        <div className="space-y-3 animate-fade-in">
+                                                            <div className="flex items-center gap-2 text-[10px] text-green-400 font-medium bg-green-900/20 px-3 py-1.5 rounded-full border border-green-900/30 w-fit">
+                                                                <Globe size={10} />
+                                                                {t.shareable}
+                                                            </div>
+
+                                                            <div className="flex gap-2">
+                                                                <input 
+                                                                    type="text"
+                                                                    value={searchQuery}
+                                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && searchMusic()}
+                                                                    placeholder={t.searchPlaceholder}
+                                                                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 transition-all font-medium placeholder-neutral-600 inner-border-highlight"
+                                                                />
+                                                                <button 
+                                                                    onClick={searchMusic}
+                                                                    disabled={isSearching}
+                                                                    className="px-3 bg-white/10 hover:bg-white/20 border border-white/5 rounded-lg text-white disabled:opacity-50 transition-colors"
+                                                                >
+                                                                    {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Results List */}
+                                                            {searchResults.length > 0 && (
+                                                                <div className="space-y-2 mt-2">
+                                                                    {searchResults.map(track => (
+                                                                        <div key={track.trackId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/5 transition-colors group">
+                                                                            <div className="relative w-10 h-10 rounded overflow-hidden shrink-0 bg-neutral-800">
+                                                                                <img src={track.artworkUrl100} alt="Art" className="w-full h-full object-cover opacity-80 group-hover:opacity-100" />
+                                                                                <button 
+                                                                                    onClick={(e) => { e.stopPropagation(); togglePreview(track); }}
+                                                                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                >
+                                                                                    {previewTrackId === track.trackId ? <Pause size={14} className="text-white" /> : <Play size={14} className="text-white" />}
+                                                                                </button>
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0 cursor-pointer" onClick={() => selectTrack(track)}>
+                                                                                <div className="text-xs font-bold text-white truncate">{track.trackName}</div>
+                                                                                <div className="text-[10px] text-neutral-400 truncate">{track.artistName}</div>
+                                                                            </div>
+                                                                            {config.customAudioUrl === track.previewUrl && (
+                                                                                <Check size={14} className="text-green-400 mr-2" />
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            {searchResults.length === 0 && searchQuery && !isSearching && (
+                                                                <div className="text-center text-[10px] text-neutral-500 py-2">{t.noResults}</div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-3 animate-fade-in">
+                                                            <div className="flex items-center gap-2 text-[10px] text-yellow-400 font-medium bg-yellow-900/20 px-3 py-1.5 rounded-full border border-yellow-900/30 w-fit">
+                                                                <FileAudio size={10} />
+                                                                {t.localOnly}
+                                                            </div>
+                                                            <div className="relative group">
+                                                                <input 
+                                                                    type="file" 
+                                                                    accept="audio/*"
+                                                                    onChange={handleFileUpload}
+                                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                                />
+                                                                <div className="w-full bg-black/40 border border-white/10 border-dashed rounded-lg px-3 py-6 text-xs text-neutral-400 group-hover:bg-white/5 group-hover:border-white/30 transition-all truncate flex flex-col items-center gap-2 text-center">
+                                                                    <Upload size={16} className="text-neutral-500" />
+                                                                    {(config.customAudioName && !config.customAudioUrl?.startsWith('http')) ? config.customAudioName : t.uploadPlaceholder}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {config.customAudioUrl && (
+                                                        <div className="pt-2 border-t border-white/5 flex justify-end">
+                                                            <button 
+                                                                onClick={() => onChange({...config, customAudioUrl: null, customAudioName: null})}
+                                                                className="text-[10px] text-red-400 hover:text-red-300 hover:underline"
+                                                            >
+                                                                {t.resetAudio}
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -512,7 +670,6 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
 
                 {/* Footer */}
                 <div className="p-5 border-t border-white/5 bg-neutral-900/95 backdrop-blur-md shrink-0 pb-safe z-10">
-                    
                     {/* Install App Section - Only shows if supported, not installed, AND user is on mobile */}
                     {canInstall && isMobile && (
                         <div className="mb-4 w-full">
