@@ -411,7 +411,7 @@ const SettingsPanel: React.FC<Props> = ({ config, onChange, onReset, onClose, is
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-2 text-[10px] text-green-400 font-medium bg-green-900/20 px-3 py-1.5 rounded-full border border-green-900/30 w-fit">
                                                                     <Globe size={10} />
-                                                                    {t.shareable}
+                                                                    {t.online}
                                                                 </div>
                                                                 <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 font-medium">
                                                                     <Clock size={10} />

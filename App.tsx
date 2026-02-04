@@ -4,14 +4,13 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import RoutePlanner from './components/RoutePlanner';
 import InlineMap from './components/InlineMap';
 import SettingsPanel from './components/SettingsPanel';
 import { AppState, RouteDetails, DEFAULT_CONFIG, MapConfig, Language, PointState } from './types';
 import { translations } from './services/translations';
-import { parseStateFromUrl } from './services/urlUtils';
 
 // Helper to load only the user's persistent config from localStorage
 const loadUserConfig = (): MapConfig => {
@@ -32,15 +31,6 @@ function App() {
   const [route, setRoute] = useState<RouteDetails | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   
-  // Shared state hydrated from URL
-  const [initialStart, setInitialStart] = useState<PointState>();
-  const [initialEnd, setInitialEnd] = useState<PointState>();
-
-  // Track if current session is a shared session (loaded from URL)
-  // We use a ref so we can update it immediately during init without re-renders, 
-  // but we also need it for the useEffect dependency.
-  const isSharedSessionRef = useRef(false);
-
   // PWA Install State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -74,37 +64,13 @@ function App() {
     }
   };
   
-  // Initialize config
-  const [mapConfig, setMapConfig] = useState<MapConfig>(() => {
-    // Start with user's saved config
-    const userConfig = loadUserConfig();
-    
-    // Check URL params and merge immediately for the initial render
-    const { configPartial, start } = parseStateFromUrl();
-    
-    // If we have URL params that imply a shared route (start point or specific config), merge them
-    if (start || Object.keys(configPartial || {}).length > 0) {
-        isSharedSessionRef.current = true;
-        return { ...userConfig, ...configPartial };
-    }
-    return userConfig;
-  });
-
-  // Hydrate Points from URL on Mount
-  useEffect(() => {
-    const { start, end } = parseStateFromUrl();
-    if (start) setInitialStart(start);
-    if (end) setInitialEnd(end);
-  }, []);
+  // Initialize config from local storage only
+  const [mapConfig, setMapConfig] = useState<MapConfig>(() => loadUserConfig());
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
   // Persist config changes (Excluding Audio to save space)
   useEffect(() => {
-    // CRITICAL: Do NOT save to localStorage if we are in a shared session.
-    // This prevents the viewer's personal defaults from being overwritten by the shared route's settings.
-    if (isSharedSessionRef.current) return;
-
     try {
         // Only save to localStorage if we are in PLANNING mode or if the change was explicitly made via settings
         // However, standard behavior is usually to save what you see. 
@@ -138,20 +104,6 @@ function App() {
   const handleReset = () => {
       setAppState(AppState.PLANNING);
       setRoute(null);
-      
-      // Clear shared session flag
-      isSharedSessionRef.current = false;
-
-      // Remove URL parameters (Clear shared state)
-      window.history.pushState({}, '', window.location.pathname);
-      
-      // Revert to user's saved config (ignoring the shared params that were previously merged)
-      const userConfig = loadUserConfig();
-      setMapConfig(userConfig);
-      
-      // Clear hydration points so the planner is empty for a fresh start
-      setInitialStart(undefined);
-      setInitialEnd(undefined);
   };
 
   return (
@@ -215,8 +167,6 @@ function App() {
                         onOpenSettings={() => setIsSettingsOpen(true)}
                         t={t.planner}
                         language={language}
-                        initialStart={initialStart}
-                        initialEnd={initialEnd}
                         config={mapConfig}
                     />
                 </div>
