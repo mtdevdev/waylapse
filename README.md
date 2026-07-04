@@ -21,10 +21,6 @@
 
 <br />
 
-> [!IMPORTANT]
-> **Project Status: Work in Progress / Active Prototype**
-> Waylapse is an active functional prototype. The core cinematic camera engine, Leaflet mapping integration, and customizations are fully operational. Development is currently on pause while planning architecture refinements for large-dataset route rendering.
-
 ## Overview
 
 **Waylapse** is a web application designed to create aesthetically pleasing, animated visualizations of travel routes. Unlike standard navigation apps, Waylapse focuses on the *presentation* of the journey. It uses algorithmic camera control to create cinematic flyovers, smooth path following, and stylized statistical overlays, making it perfect for content creators, travel vloggers, or anyone who wants to visualize a trip.
