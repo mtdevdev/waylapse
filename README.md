@@ -7,9 +7,10 @@
   </p>
   
   <p>
-    <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" /></a>
+    <a href="https://react.dev"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" /></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind" /></a>
     <a href="https://leafletjs.com"><img src="https://img.shields.io/badge/Leaflet-JS-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet" /></a>
+    <img src="https://img.shields.io/badge/PWA-Supported-orange?style=flat-square" alt="PWA" />
   </p>
 </div>
 
@@ -28,6 +29,9 @@ The application is client-side only and deployed on Vercel.
   * `Glide`: Medium-altitude path following.
   * `Takeoff/Landing`: Automated altitude changes at the start and end.
   * `Overview`: Static full-route view.
+  * `High Altitude`: Fixed high-altitude overview.
+  * `Low Pass`: Fixed low-altitude close-up tracking.
+  * `Breathe`: Oscillating camera zoom effect.
 * **Intro Sequences:** Automated panning transitions from origin to destination before starting the playback.
 
 ### 🎨 Visual Customization
@@ -46,9 +50,10 @@ The application is client-side only and deployed on Vercel.
 * **Localization:** Built-in translation layers for English (EN) and Portuguese (PT-BR).
 
 ## 🛠️ Tech Stack
-* **Frontend:** React 19 (Vite)
+* **Frontend:** React 18 (Vite)
+* **PWA:** Progressive Web App integration (Vite PWA Plugin)
 * **Styling:** Tailwind CSS
-* **Map Engine:** Leaflet.js
+* **Map Engine:** Leaflet.js (React Leaflet)
 * **Icons:** Lucide React
 * **Data APIs:** Nominatim API (Geocoding), OSRM API (Routing)
 
