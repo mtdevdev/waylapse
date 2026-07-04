@@ -1,5 +1,3 @@
-<hr>
-
 <div align="center">
 
   <img src="github/waylapse_banner.png" alt="waylapse_banner"/>
@@ -8,80 +6,59 @@
     A cinematic route visualization tool built with React, Leaflet, and Tailwind CSS.
   </p>
   
-  <a href="https://vercel.com">
-    <img src="https://img.shields.io/badge/Deployment-Vercel-000000?style=for-the-badge&logo=vercel" alt="Vercel" />
-  </a>
-  <a href="https://react.dev">
-    <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-  </a>
-  <a href="https://tailwindcss.com">
-    <img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind" />
-  </a>
+  <p>
+    <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" /></a>
+    <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind" /></a>
+    <a href="https://leafletjs.com"><img src="https://img.shields.io/badge/Leaflet-JS-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet" /></a>
+  </p>
 </div>
 
-<br />
+<hr>
 
-## Overview
+**Waylapse** is a browser-based application that creates animated, cinematic visualizations of travel routes. Designed for content creators and travel logging, it uses algorithmic camera controls, smooth path tracking, and customizable statistical overlays to showcase journeys dynamically.
 
-**Waylapse** is a web application designed to create aesthetically pleasing, animated visualizations of travel routes. Unlike standard navigation apps, Waylapse focuses on the *presentation* of the journey. It uses algorithmic camera control to create cinematic flyovers, smooth path following, and stylized statistical overlays, making it perfect for content creators, travel vloggers, or anyone who wants to visualize a trip.
+The application is client-side only and deployed on Vercel.
 
-The application is fully client-side and deployed on **Vercel**.
+## ✨ Features
 
-## ✨ Key Features
+### 🎥 Camera Controls & Cinematic Rendering
+* **Multiple Camera Modes:** 
+  * `Cinematic`: Dynamic zoom based on current speed and route curvature.
+  * `Focus`: Locked tracking on the traveler marker.
+  * `Glide`: Medium-altitude path following.
+  * `Takeoff/Landing`: Automated altitude changes at the start and end.
+  * `Overview`: Static full-route view.
+* **Intro Sequences:** Automated panning transitions from origin to destination before starting the playback.
 
-### 🎥 Cinematic Visualization
-*   **Smart Camera Systems:** Choose from multiple camera behaviors:
-    *   `Cinematic`: Dynamic zoom based on speed and turn curvature.
-    *   `Focus`: Tight lock on the traveler.
-    *   `Glide`: Smooth, medium-altitude following.
-    *   `Takeoff/Landing`: Gradual altitude changes.
-    *   `Overview`: Static full-route view.
-*   **Intro Sequences:** Automated "TV-style" intro sequences that pan from origin to destination before the journey begins.
+### 🎨 Visual Customization
+* **Map Rendering:** Adjust contrast, brightness, and toggle tile visibility for minimalist styles.
+* **Route Customization:** Configure path stroke width and color configurations.
+* **Overlays:** Toggleable displays showing distance, elapsed time, and active location coordinates.
 
-### 🎨 Deep Customization
-*   **Map Styling:** Adjust map brightness, contrast, and toggle tile visibility for a minimalist "dark mode" look.
-*   **Path Styling:** Customize route line width and neon colors.
-*   **Stats Overlay:** toggleable display of distance, time, and location labels.
+### 📱 Media Integration
+* **Social Overlays:** Add profile pictures and custom `@username` handles.
+* **Audio Support:** Sync custom audio files with the visualization, displaying a "Now Playing" ticker.
+* **Clean UI Mode:** Controls auto-hide to optimize screen recording layouts.
 
-### 📱 Social Mode
-Designed for screen recording and sharing:
-*   **Identity:** Add a custom `@username` handle and profile picture.
-*   **Audio:** Upload custom audio tracks that play in sync with the visualization, complete with a "Now Playing" ticker.
-*   **Clean UI:** Controls auto-hide for a distraction-free recording experience.
-
-### 🌍 Global Support
-*   **Search:** Integrated global location search using OpenStreetMap (Nominatim).
-*   **Routing:** Real-time routing via OSRM (Open Source Routing Machine).
-*   **i18n:** Built-in support for English (EN) and Portuguese (PT-BR).
+### 🌍 Routing & Geocoding
+* **Search:** Global location lookup powered by OpenStreetMap (Nominatim).
+* **Route Calculation:** Real-time routing computations using OSRM (Open Source Routing Machine).
+* **Localization:** Built-in translation layers for English (EN) and Portuguese (PT-BR).
 
 ## 🛠️ Tech Stack
+* **Frontend:** React 19 (Vite)
+* **Styling:** Tailwind CSS
+* **Map Engine:** Leaflet.js
+* **Icons:** Lucide React
+* **Data APIs:** Nominatim API (Geocoding), OSRM API (Routing)
 
-*   **Frontend Framework:** React 19 (Vite)
-*   **Styling:** Tailwind CSS
-*   **Maps & Rendering:** Leaflet.js
-*   **Icons:** Lucide React
-*   **Typography:** Montserrat & Inter
-*   **APIs:**
-    *   Nominatim (Geocoding)
-    *   OSRM (Routing)
-
-
-## ⚙️ Configuration
-
-The app features a robust settings panel accessible via the UI:
+## ⚙️ Configuration Options
 
 | Category | Options | Description |
 | :--- | :--- | :--- |
-| **Motion** | Camera Mode, Duration, Intro Speed | Control how the camera moves and how long the animation takes. |
-| **Style** | Map Tiles, Brightness, Line Color | Adjust the visual fidelity of the map. |
-| **Social** | Handle, Avatar, Music | Configure overlays for social media sharing. |
+| **Motion** | Camera Mode, Duration, Intro Speed | Control camera kinematics and playback speed. |
+| **Style** | Map Tiles, Brightness, Line Color | Customize the map rendering theme and path color. |
+| **Social** | Username, Avatar, Audio | Setup overlay text and audio integrations. |
 
 ## 📄 License
-
 This project is licensed under the Apache 2.0 License.
-
----
-
-<div align="center">
-  <sub>Built with ❤️ using React and OpenStreetMap data.</sub>
-</div>
