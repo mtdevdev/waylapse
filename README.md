@@ -7,6 +7,7 @@
   </p>
   
   <p>
+    <a href="https://github.com/mtdevdev/waylapse/blob/main/LICENSE"><img src="https://img.shields.io/github/license/mtdevdev/waylapse?style=flat-square" alt="License" /></a>
     <a href="https://react.dev"><img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" /></a>
     <a href="https://tailwindcss.com"><img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat-square&logo=tailwind-css" alt="Tailwind" /></a>
     <a href="https://leafletjs.com"><img src="https://img.shields.io/badge/Leaflet-JS-199900?style=flat-square&logo=leaflet&logoColor=white" alt="Leaflet" /></a>
