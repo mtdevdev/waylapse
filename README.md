@@ -66,4 +66,4 @@ The application is client-side only and deployed on Vercel.
 | **Social** | Username, Avatar, Audio | Setup overlay text and audio integrations. |
 
 ## 📄 License
-This project is licensed under the Apache 2.0 License.
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
